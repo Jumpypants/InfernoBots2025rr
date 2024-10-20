@@ -9,16 +9,16 @@ public class Intake {
     public static double ROTATIONS_PER_INCH = 1.0;
     public static double ALLOWED_ERROR = 0.1;
 
-    public static double KP = 0.1;
-    public static double KI = 0.01;
-    public static double KD = 0.001;
+    public static double KP = 0.05;
+    public static double KI = 0.0;
+    public static double KD = 0.0;
 
     private final Motor SLIDE_MOTOR;
 
     private double slidePosition = 0.0;
 
     public Intake(HardwareMap hardwareMap) {
-        this.SLIDE_MOTOR = new Motor(hardwareMap, "intake");
+        this.SLIDE_MOTOR = new Motor(hardwareMap, "intakeSLide");
     }
 
     public boolean stepSlideTo(double position) {
