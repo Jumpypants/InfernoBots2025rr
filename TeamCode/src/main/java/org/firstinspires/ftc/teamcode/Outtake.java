@@ -1,14 +1,15 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.dashboard.config.Config;
-import com.arcrobotics.ftclib.hardware.motors.CRServo;
+import com.arcrobotics.ftclib.hardware.ServoEx;
+import com.arcrobotics.ftclib.hardware.SimpleServo;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 @Config
 public class Outtake {
     private final Motor SLIDE_MOTOR;
-    private final CRServo ROTATE_SERVO;
+    private final ServoEx ROTATE_SERVO;
 
     public static double SLIDE_ROTATIONS_PER_INCH = 1.0;
     public static double ALLOWED_ERROR = 0.1;
@@ -16,14 +17,14 @@ public class Outtake {
     public static double OUT_POSITION = 0.0;
     public static double IN_POSITION = Math.PI / 2;
 
-    public static double KP = 0.1;
-    public static double KI = 0.01;
-    public static double KD = 0.001;
+    public static double KP = 0.05;
+    public static double KI = 0.0;
+    public static double KD = 0.0;
     public static double KF = 0.0;
 
     public Outtake(HardwareMap hardwareMap) {
-        SLIDE_MOTOR = new Motor(hardwareMap, "outtake");
-        ROTATE_SERVO = new CRServo(hardwareMap, "rotate");
+        SLIDE_MOTOR = new Motor(hardwareMap, "outtakeSlide");
+        ROTATE_SERVO = new SimpleServo(hardwareMap, "outtakeSpin", 0, Math.PI / 2);
     }
 
     public boolean stepSlideTo(double position) {
@@ -45,27 +46,15 @@ public class Outtake {
         return false;
     }
 
-    public boolean stepTurnOut() {
-        if (ROTATE_SERVO.getCurrentPosition() <= OUT_POSITION) {
-            return true;
-        }
+    public void stepTurnOut() {
 
-        ROTATE_SERVO.set(-1);
+        ROTATE_SERVO.setPosition(OUT_POSITION);
 
-        return false;
     }
 
-    public boolean stepTurnIn() {
-        if (ROTATE_SERVO.getCurrentPosition() >= IN_POSITION) {
-            return true;
-        }
+    public void stepTurnIn() {
 
-        ROTATE_SERVO.set(1);
+        ROTATE_SERVO.setPosition(IN_POSITION);
 
-        return false;
-    }
-
-    public void stopServo() {
-        ROTATE_SERVO.set(0);
     }
 }

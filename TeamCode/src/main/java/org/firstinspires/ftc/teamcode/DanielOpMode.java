@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
@@ -15,7 +16,10 @@ public class DanielOpMode extends LinearOpMode {
     public void runOpMode() {
         waitForStart();
 
+        Gamepad gamepad1 = new Gamepad();
+
         DriveBase driveBase = new DriveBase(hardwareMap, 1);
+        Outtake outtake = new Outtake(hardwareMap);
 
         FtcDashboard dashboard = FtcDashboard.getInstance();
         Telemetry dashboardTelemetry = dashboard.getTelemetry();
@@ -32,7 +36,28 @@ public class DanielOpMode extends LinearOpMode {
 //            }
 //            dashboardTelemetry.update();
 
-            driveBase.drive(gamepad1);
+//            driveBase.drive(gamepad1);
+
+            dashboardTelemetry.addData("a", "not pressed");
+
+            if (gamepad1.a) {
+                outtake.stepTurnOut();
+                telemetry.addData("a", "Pressed");
+            }
+
+            if (gamepad1.b) {
+                outtake.stepTurnIn();
+            }
+
+            if (gamepad1.x) {
+                outtake.stepSlideTo(0);
+            }
+
+            if (gamepad1.y) {
+                outtake.stepSlideTo(10);
+            }
+
+            dashboardTelemetry.update();
         }
     }
 }
