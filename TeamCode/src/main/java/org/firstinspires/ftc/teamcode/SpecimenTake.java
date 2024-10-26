@@ -21,6 +21,7 @@ public class SpecimenTake {
         SPECIMEN_CLAW = new CRServo(hardwareMap, "claw");
     }
 
+    // check if claw is closed
     public boolean closed(){
         return SPECIMEN_CLAW.getCurrentPosition() <= OPEN_CLAW_POS;
     }
