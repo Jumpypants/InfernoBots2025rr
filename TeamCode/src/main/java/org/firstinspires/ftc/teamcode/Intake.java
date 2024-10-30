@@ -13,6 +13,11 @@ public class Intake {
         Stopped
     }
 
+    public static double SLIDE_POSITION_ENTER_SUBMERSIBLE = 5;
+    public static double SLIDE_POSITION_EXIT_SUBMERSIBLE = 0;
+    public static double WRIST_DOWN_POSITION = 0.82;
+    public static double WRIST_UP_POSITION = 0.225;
+
     public static double SLIDE_ROTATIONS_PER_INCH = 4.4 * 3;
     public static double ALLOWED_ERROR = 0.1;
 
@@ -25,7 +30,7 @@ public class Intake {
     private final Motor SPIN_MOTOR;
 
     private double slidePosition = 0.0;
-    private double slideTarget = 0.0;
+    private State state = State.Stopped;
 
     public Intake(HardwareMap hardwareMap) {
         this.SLIDE_MOTOR = new Motor(hardwareMap, "intakeSlide");
@@ -34,7 +39,27 @@ public class Intake {
         SLIDE_MOTOR.setInverted(true);
     }
 
-    public boolean stepSlideTo(double position) {
+    public void step() {
+        switch (state) {
+            case EnterSubmersible:
+                if (stepSlideTo(SLIDE_POSITION_ENTER_SUBMERSIBLE)) {
+                    setWrist(WRIST_DOWN_POSITION);
+                    setState(State.Stopped);
+                }
+                break;
+            case ExitSubmersible:
+                setWrist(WRIST_UP_POSITION);
+                if (stepSlideTo(SLIDE_POSITION_EXIT_SUBMERSIBLE)){
+                    setState(State.Stopped);
+                }
+                break;
+            case Stopped:
+                SLIDE_MOTOR.set(0);
+                break;
+        }
+    }
+
+    private boolean stepSlideTo(double position) {
         slidePosition = getSlidePosition();
 
         if (Math.abs(slidePosition - position) < ALLOWED_ERROR) {
@@ -51,6 +76,10 @@ public class Intake {
         SLIDE_MOTOR.set(power);
 
         return false;
+    }
+
+    public void setState (State s) {
+        state = s;
     }
 
     public void setWrist (double p) {
