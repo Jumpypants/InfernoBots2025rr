@@ -7,6 +7,12 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 @Config
 public class Intake {
+    public static enum State {
+        EnterSubmersible,
+        ExitSubmersible,
+        Stopped
+    }
+
     public static double SLIDE_ROTATIONS_PER_INCH = 4.4 * 3;
     public static double ALLOWED_ERROR = 0.1;
 
@@ -19,6 +25,7 @@ public class Intake {
     private final Motor SPIN_MOTOR;
 
     private double slidePosition = 0.0;
+    private double slideTarget = 0.0;
 
     public Intake(HardwareMap hardwareMap) {
         this.SLIDE_MOTOR = new Motor(hardwareMap, "intakeSlide");

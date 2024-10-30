@@ -31,10 +31,14 @@ public class DriveBase {
     private ArrayList<Motor> findMotors(HardwareMap hardwareMap) {
         Motor frontLeft = new Motor(hardwareMap, "leftFront");
         frontLeft.setInverted(true);
+        frontLeft.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
         Motor frontRight = new Motor(hardwareMap, "rightFront");
-        frontRight.setInverted(true);
+        frontRight.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
         Motor backLeft = new Motor(hardwareMap, "leftBack");
+        backLeft.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
+        backLeft.setInverted(true);
         Motor backRight = new Motor(hardwareMap, "rightBack");
+        backRight.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
 
         ArrayList<Motor> driveMotors = new ArrayList<Motor>();
         driveMotors.add(frontLeft);
@@ -45,37 +49,37 @@ public class DriveBase {
         return driveMotors;
     }
 
-    public void drive (Gamepad gamepad1) {
-//        telemetry.addData("joystick y", gamepad1.left_stick_y);
-//        telemetry.update();
+    public void drive (Gamepad gamepad1, double heading) {
+        resetMotorPowers();
 
-        Motor leftFrontDrive = motors.get(0);
-        Motor rightFrontDrive = motors.get(1);
-        Motor leftBackDrive = motors.get(2);
-        Motor rightBackDrive = motors.get(3);
+        double x = gamepad1.left_stick_x;
+        double y = gamepad1.left_stick_y;
 
-        // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
-        double axial   = gamepad1.left_stick_x;  // Note: pushing stick forward gives negative value
-        double lateral = -gamepad1.left_stick_y;
-        double yaw     = gamepad1.right_stick_x;
+        // Rotate the joystick vector by the heading for field-centric driving
+        double cosHeading = Math.cos(Math.toRadians(heading));
+        double sinHeading = Math.sin(Math.toRadians(heading));
 
-        // Combine the joystick requests for each axis-motion to determine each wheel's power.
-        // Set up a variable for each drive wheel to save the power level for telemetry.
-        double leftFrontPower  = axial + lateral + yaw;
-        double rightFrontPower = axial - lateral - yaw;
-        double leftBackPower   = axial - lateral + yaw;
-        double rightBackPower  = axial + lateral - yaw;
+        double strafe = x * cosHeading - y * sinHeading;
+        double drive = -(x * sinHeading + y * cosHeading);
+        double turn = gamepad1.right_stick_x;
 
-        leftFrontPower  *= velocityConst;
-        rightFrontPower *= velocityConst;
-        leftBackPower   *= velocityConst;
-        rightBackPower  *= velocityConst;
+        double leftFrontPower = drive + turn + strafe;
+        double rightFrontPower = drive - turn - strafe;
+        double leftBackPower = drive + turn - strafe;
+        double rightBackPower = drive - turn + strafe;
 
-        // Send calculated power to wheels
-        leftFrontDrive.set(leftFrontPower);
-        rightFrontDrive.set(rightFrontPower);
-        leftBackDrive.set(leftBackPower);
-        rightBackDrive.set(rightBackPower);
+        double maxPower = Math.max(Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower)), Math.max(Math.abs(leftBackPower), Math.abs(rightBackPower)));
+        if (maxPower > 1) {
+            leftFrontPower /= maxPower;
+            rightFrontPower /= maxPower;
+            leftBackPower /= maxPower;
+            rightBackPower /= maxPower;
+        }
+
+        motors.get(0).set(leftFrontPower * velocityConst);
+        motors.get(1).set(rightFrontPower * velocityConst);
+        motors.get(2).set(leftBackPower * velocityConst);
+        motors.get(3).set(rightBackPower * velocityConst);
     }
 
     public void driveRotateTo (double target, Telemetry telemetry, double kpMultiplier) {
