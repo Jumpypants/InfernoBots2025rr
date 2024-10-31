@@ -5,21 +5,37 @@ import com.arcrobotics.ftclib.hardware.ServoEx;
 import com.arcrobotics.ftclib.hardware.SimpleServo;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 @Config
 public class Outtake {
+    public static enum State {
+        GoDown,
+        OuttakeHigh,
+        Stopped
+    }
+
     private final Motor SLIDE_MOTOR;
-    private final ServoEx ROTATE_SERVO;
+    private final ServoEx SPIN_SERVO;
 
     public static double SLIDE_ROTATIONS_PER_INCH = 4.724;
     public static double ALLOWED_ERROR = 0.1;
 
     private double slidePosition = 0;
 
-    public static double OUT_POSITION = 0.0;
-    public static double IN_POSITION = Math.PI / 2;
+    public static double SPIN_OUT_POSITION = 0.0;
+    public static double SPIN_IN_POSITION = Math.PI / 2;
+    public static double HIGH_OUTTAKE_POSITION = 42;
+    public static double DOWN_POSITION = 0.0;
+    public static double TIME_TO_SPIN = 2;
+
+    public boolean finishedOuttake = false;
+
+    private State state = State.Stopped;
+
+    private final ElapsedTime timeSpinning = new ElapsedTime();
 
     public static double KP = 0.07;
     public static double KI = 0.0;
@@ -29,10 +45,10 @@ public class Outtake {
     public Outtake(HardwareMap hardwareMap) {
         SLIDE_MOTOR = new Motor(hardwareMap, "outtakeSlide");
         SLIDE_MOTOR.setInverted(true);
-        ROTATE_SERVO = new SimpleServo(hardwareMap, "outtakeSpin", 0, Math.PI / 2);
+        SPIN_SERVO = new SimpleServo(hardwareMap, "outtakeSpin", 0, Math.PI / 2);
     }
 
-    public boolean stepSlideTo(double position, Telemetry telemetry) {
+    private boolean stepSlideTo(double position, Telemetry telemetry) {
         slidePosition = getSlidePosition();
 
         if (Math.abs(slidePosition - position) < ALLOWED_ERROR) {
@@ -53,20 +69,36 @@ public class Outtake {
         return false;
     }
 
-    public void stepTurnOut() {
-
-        ROTATE_SERVO.setPosition(OUT_POSITION);
-
+    public void step(Telemetry telemetry) {
+        switch (state) {
+            case GoDown:
+                if (stepSlideTo(DOWN_POSITION, telemetry)) {
+                    setSpin(SPIN_IN_POSITION);
+                    setState(State.Stopped);
+                }
+                break;
+            case OuttakeHigh:
+                finishedOuttake = false;
+                if (stepSlideTo(HIGH_OUTTAKE_POSITION, telemetry)) {
+                    setSpin(SPIN_OUT_POSITION);
+                    if (timeSpinning.seconds() >= TIME_TO_SPIN) {
+                        setState(State.Stopped);
+                        finishedOuttake = true;
+                    }
+                }
+                break;
+            case Stopped:
+                SLIDE_MOTOR.set(0);
+                break;
+        }
     }
 
-    public void stepTurnIn() {
-
-        ROTATE_SERVO.setPosition(IN_POSITION);
-
+    public void setState(State state) {
+        this.state = state;
     }
 
-    public Motor getSLIDE_MOTOR() {
-        return SLIDE_MOTOR;
+    public void setSpin(double position) {
+        SPIN_SERVO.setPosition(position);
     }
 
     public double getSlidePosition() {

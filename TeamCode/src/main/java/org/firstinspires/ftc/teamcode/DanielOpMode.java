@@ -6,19 +6,22 @@ import com.acmerobotics.roadrunner.ftc.LazyImu;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.IMU;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-
-import java.util.ArrayList;
 
 @TeleOp(name = "--DanielOpMode")
 
 @Config
 public class DanielOpMode extends LinearOpMode {
-    public static double targetPos = 0;
-    public static double targetWristPos = 0.82;
+    private static enum State {
+        Transfer,
+        ExtendVertical,
+        ExtendHorizontal,
+        None
+    }
+
+    private State state = State.None;
 
     @Override
     public void runOpMode() {
@@ -39,51 +42,44 @@ public class DanielOpMode extends LinearOpMode {
         //SampleFinder sampleFinder = new SampleFinder(hardwareMap, dashboardTelemetry);
 
         while (opModeIsActive()) {
-//            driveBase.resetMotorPowers();
-//
-//            ArrayList<Sample> samples = sampleFinder.getDetectedStonePositions(dashboardTelemetry);
-//            if (!samples.isEmpty()) {
-//                driveBase.driveRotateTo(samples.get(0).x, dashboardTelemetry, 1 / samples.get(0).z * 100);
-//            }
-//            dashboardTelemetry.update();
-
             driveBase.drive(gamepad1, imu.getRobotYawPitchRollAngles().getYaw());
-            //driveBase.drive(gamepad1, 0);
 
 //            dashboardTelemetry.addData("slidePosition in rotations", intake.getSLIDE_MOTOR().getCurrentPosition() / 360);
 //            dashboardTelemetry.addData("slidePosition in inches", intake.getSlidePosition());
 
-//            intake.setSpin(0);
-//            if (gamepad1.a) {
-//                intake.setSpin(1);
-//            }
-//
-//            if (gamepad1.b) {
-//                intake.setSpin(-1);
-//            }
-//
-//            if (gamepad1.dpad_up) {
-//               targetWristPos = 0.225;
-//            }
-//
-//            if (gamepad1.dpad_down) {
-//                targetWristPos = 0.82;
-//            }
-//
-//            if (gamepad1.x) {
-//                targetPos = 0;
-//            }
-//
-//            if (gamepad1.y) {
-//                targetPos = 12;
-//            }
+            if (gamepad1.a) {
+                intake.setState(Intake.State.EnterSubmersible);
+                state = State.ExtendHorizontal;
+            }
 
-            //dashboardTelemetry.addData("Wrist target", targetWristPos);
+            if (gamepad1.b) {
+                intake.setState(Intake.State.Transfer);
+                state = State.Transfer;
+            }
 
+            switch (state) {
+                case Transfer:
+                    if (intake.finishedTransfer) {
+                        state = State.ExtendVertical;
+                        outtake.setState(Outtake.State.OuttakeHigh);
+                    }
+                    break;
+                case ExtendVertical:
+                    if (outtake.finishedOuttake) {
+                        state = State.None;
+                        outtake.setState(Outtake.State.GoDown);
+                    }
+                    break;
+                case ExtendHorizontal:
+                    if (intake.finishedIntake) {
+                        state = State.Transfer;
+                    }
+                    break;
+            }
 
-            //outtake.stepSlideTo(targetPos, dashboardTelemetry);
-            //intake.stepSlideTo(targetPos);
-            //intake.setWrist(targetWristPos);
+            intake.step();
+            outtake.step(telemetry);
+
             dashboardTelemetry.update();
         }
     }
