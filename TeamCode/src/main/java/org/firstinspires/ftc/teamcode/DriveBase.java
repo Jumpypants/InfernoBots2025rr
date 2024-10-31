@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.dashboard.config.Config;
-import com.arcrobotics.ftclib.hardware.motors.CRServo;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -13,14 +12,18 @@ import java.util.ArrayList;
 @Config
 public class DriveBase {
     ArrayList<Motor> motors;
-    public static double velocityConst;
-    public static double rotationConst = 0.0645;
-    public static double rotationKp = 0.0175;
-    public static double rotationKd = 0;
+    public static double VELOCITY_CONST;
+
+    // TODO: re-tune PID constants
+    public static double ROTATION_CONST = 0.0645;
+    public static double ROTATION_KP = 0.0175;
+    public static double ROTATION_KD = 0;
+    public static double ROTATION_KI = 0;
+    public static double ROTATION_ALLOWED_ERROR = 0.1;
 
     public DriveBase (HardwareMap hardwareMap, double velocityConst) {
         this.motors = findMotors(hardwareMap);
-        DriveBase.velocityConst = velocityConst;
+        DriveBase.VELOCITY_CONST = velocityConst;
 
         for (Motor motor : this.motors) {
             motor.setRunMode(Motor.RunMode.VelocityControl);
@@ -76,36 +79,40 @@ public class DriveBase {
             rightBackPower /= maxPower;
         }
 
-        motors.get(0).set(leftFrontPower * velocityConst);
-        motors.get(1).set(rightFrontPower * velocityConst);
-        motors.get(2).set(leftBackPower * velocityConst);
-        motors.get(3).set(rightBackPower * velocityConst);
+        motors.get(0).set(leftFrontPower * VELOCITY_CONST);
+        motors.get(1).set(rightFrontPower * VELOCITY_CONST);
+        motors.get(2).set(leftBackPower * VELOCITY_CONST);
+        motors.get(3).set(rightBackPower * VELOCITY_CONST);
     }
 
-    public void driveRotateTo (double target, Telemetry telemetry, double kpMultiplier) {
-        telemetry.addData("rotationConst", Double.toString(DriveBase.rotationConst));
-        telemetry.addData("rotationKp", Double.toString(DriveBase.rotationKp * kpMultiplier));
+    public boolean stepRotateTo(double target, double heading, Telemetry telemetry, double kpMultiplier) {
+        if (Math.abs(target - heading) < ROTATION_ALLOWED_ERROR) {
+            resetMotorPowers();
+            return true;
+        }
 
         Motor leftFrontDrive = motors.get(0);
         Motor rightFrontDrive = motors.get(1);
         Motor leftBackDrive = motors.get(2);
         Motor rightBackDrive = motors.get(3);
 
-        PIDController pidController = new PIDController(DriveBase.rotationKp * kpMultiplier, 0, rotationKd);
+        PIDController pidController = new PIDController(DriveBase.ROTATION_KP * kpMultiplier, ROTATION_KI, ROTATION_KD);
         pidController.setSetpoint(target);
 
         double power;
 
-        if (pidController.calculate(0) < 0) {
-            power = rotationConst - pidController.calculate(0);
+        if (pidController.calculate(heading) < 0) {
+            power = ROTATION_CONST - pidController.calculate(0);
         } else {
-            power = -rotationConst - pidController.calculate(0);
+            power = -ROTATION_CONST - pidController.calculate(0);
         }
 
         leftFrontDrive.set(-power);
         rightFrontDrive.set(power);
         leftBackDrive.set(-power);
         rightBackDrive.set(power);
+
+        return false;
     }
 
     public void resetMotorPowers () {
