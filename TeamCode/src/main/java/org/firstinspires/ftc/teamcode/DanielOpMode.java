@@ -14,20 +14,13 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 @Config
 public class DanielOpMode extends LinearOpMode {
-    private static enum State {
-        Transfer,
-        ExtendVertical,
-        ExtendHorizontal,
-        None
-    }
-
-    private State state = State.None;
-
     @Override
     public void runOpMode() {
         waitForStart();
 
         DriveBase driveBase = new DriveBase(hardwareMap, 1);
+
+        SampleFinder sampleFinder = new SampleFinder(hardwareMap, telemetry, new double[]{0, 0, 0});
 
         IMU imu = new LazyImu(hardwareMap, "imu", new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.LEFT, RevHubOrientationOnRobot.UsbFacingDirection.UP)).get();
@@ -38,47 +31,21 @@ public class DanielOpMode extends LinearOpMode {
         FtcDashboard dashboard = FtcDashboard.getInstance();
         Telemetry dashboardTelemetry = dashboard.getTelemetry();
 
-
-        //SampleFinder sampleFinder = new SampleFinder(hardwareMap, dashboardTelemetry);
+        TeleOpStateMachine stateMachine = new TeleOpStateMachine();
 
         while (opModeIsActive()) {
             driveBase.drive(gamepad1, imu.getRobotYawPitchRollAngles().getYaw());
 
-//            dashboardTelemetry.addData("slidePosition in rotations", intake.getSLIDE_MOTOR().getCurrentPosition() / 360);
-//            dashboardTelemetry.addData("slidePosition in inches", intake.getSlidePosition());
-
-            if (gamepad1.a) {
-                intake.setState(Intake.State.EnterSubmersible);
-                state = State.ExtendHorizontal;
-            }
-
-            if (gamepad1.b) {
-                intake.setState(Intake.State.Transfer);
-                state = State.Transfer;
-            }
-
-            switch (state) {
-                case Transfer:
-                    if (intake.finishedTransfer) {
-                        state = State.ExtendVertical;
-                        outtake.setState(Outtake.State.OuttakeHigh);
-                    }
-                    break;
-                case ExtendVertical:
-                    if (outtake.finishedOuttake) {
-                        state = State.None;
-                        outtake.setState(Outtake.State.GoDown);
-                    }
-                    break;
-                case ExtendHorizontal:
-                    if (intake.finishedIntake) {
-                        state = State.Transfer;
-                    }
-                    break;
-            }
-
-            intake.step();
-            outtake.step(telemetry);
+            stateMachine.step(
+                    intake,
+                    outtake,
+                    driveBase,
+                    telemetry,
+                    imu,
+                    gamepad1,
+                    gamepad2,
+                    sampleFinder
+            );
 
             dashboardTelemetry.update();
         }

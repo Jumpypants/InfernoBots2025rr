@@ -11,12 +11,6 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 @Config
 public class Outtake {
-    public static enum State {
-        GoDown,
-        OuttakeHigh,
-        Stopped
-    }
-
     private final Motor SLIDE_MOTOR;
     private final ServoEx SPIN_SERVO;
 
@@ -27,13 +21,9 @@ public class Outtake {
 
     public static double SPIN_OUT_POSITION = 0.0;
     public static double SPIN_IN_POSITION = Math.PI / 2;
-    public static double HIGH_OUTTAKE_POSITION = 42;
+    public static double HIGH_BASKET_POSITION = 42;
     public static double DOWN_POSITION = 0.0;
     public static double TIME_TO_SPIN = 2;
-
-    public boolean finishedOuttake = false;
-
-    private State state = State.Stopped;
 
     private final ElapsedTime timeSpinning = new ElapsedTime();
 
@@ -48,7 +38,7 @@ public class Outtake {
         SPIN_SERVO = new SimpleServo(hardwareMap, "outtakeSpin", 0, Math.PI / 2);
     }
 
-    private boolean stepSlideTo(double position, Telemetry telemetry) {
+    public boolean stepSlideTo(double position, Telemetry telemetry) {
         slidePosition = getSlidePosition();
 
         if (Math.abs(slidePosition - position) < ALLOWED_ERROR) {
@@ -67,34 +57,6 @@ public class Outtake {
         SLIDE_MOTOR.set(power);
 
         return false;
-    }
-
-    public void step(Telemetry telemetry) {
-        switch (state) {
-            case GoDown:
-                if (stepSlideTo(DOWN_POSITION, telemetry)) {
-                    setSpin(SPIN_IN_POSITION);
-                    setState(State.Stopped);
-                }
-                break;
-            case OuttakeHigh:
-                finishedOuttake = false;
-                if (stepSlideTo(HIGH_OUTTAKE_POSITION, telemetry)) {
-                    setSpin(SPIN_OUT_POSITION);
-                    if (timeSpinning.seconds() >= TIME_TO_SPIN) {
-                        setState(State.Stopped);
-                        finishedOuttake = true;
-                    }
-                }
-                break;
-            case Stopped:
-                SLIDE_MOTOR.set(0);
-                break;
-        }
-    }
-
-    public void setState(State state) {
-        this.state = state;
     }
 
     public void setSpin(double position) {

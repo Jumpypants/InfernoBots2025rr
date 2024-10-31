@@ -15,10 +15,14 @@ import java.util.Comparator;
 public class SampleFinder {
     public static final double MIN_STONE_AREA = 0;
 
+    private final double[] cameraPosition;
+
     OpenCvCamera camera;
     SampleDetectionPipelinePNP pipeline;
 
-    public SampleFinder (HardwareMap hardwareMap, Telemetry telemetry) {
+    public SampleFinder (HardwareMap hardwareMap, Telemetry telemetry, double[] cameraPosition) {
+        this.cameraPosition = cameraPosition;
+
         // Initialize OpenCV camera
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "12E453FF", hardwareMap.appContext.getPackageName());
         camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
@@ -43,7 +47,7 @@ public class SampleFinder {
         FtcDashboard.getInstance().startCameraStream(camera, 0);
     }
 
-    public ArrayList<Sample> getDetectedStonePositions(Telemetry telemetry) {
+    public ArrayList<Sample> get(Telemetry telemetry) {
         ArrayList<SampleDetectionPipelinePNP.AnalyzedStone> stones = pipeline.getDetectedStones();
 
         // Filter out stones that are too small
@@ -68,9 +72,9 @@ public class SampleFinder {
 
         for (SampleDetectionPipelinePNP.AnalyzedStone stone : stones) {
             samples.add(new Sample(
-                    getTranslationVector(stone)[0],
-                    getTranslationVector(stone)[1],
-                    getTranslationVector(stone)[2],
+                    getTranslationVector(stone)[0] - cameraPosition[0],
+                    getTranslationVector(stone)[1] - cameraPosition[1],
+                    getTranslationVector(stone)[2] - cameraPosition[2],
                     stone.color, stone.rect
             ));
         }
