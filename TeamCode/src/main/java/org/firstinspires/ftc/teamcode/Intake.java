@@ -14,6 +14,11 @@ public class Intake {
     public static double SLIDE_IN_POSITION = 0;
     public static double TRANSFER_SPIN_TIME = 2;
 
+    public static double SLIDE_MAX_POSITION = 20;
+    public static double SLIDE_MIN_POSITION = 0;
+    public static double WRIST_MAX_POSITION = 0.82;
+    public static double WRIST_MIN_POSITION = 0.225;
+
     public static double EXTEND_TO_SAMPLE_OFFSET = -2;
     public static double SLIDE_ROTATIONS_PER_INCH = 4.4 * 3;
     public static double ALLOWED_ERROR = 0.1;
@@ -37,6 +42,12 @@ public class Intake {
     }
 
     public boolean stepSlideTo(double position) {
+        if (position > SLIDE_MAX_POSITION) {
+            position = SLIDE_MAX_POSITION;
+        } else if (position < SLIDE_MIN_POSITION) {
+            position = SLIDE_MIN_POSITION;
+        }
+
         slidePosition = getSlidePosition();
 
         if (Math.abs(slidePosition - position) < ALLOWED_ERROR) {
@@ -57,6 +68,11 @@ public class Intake {
 
 
     public void setWrist (double p) {
+        if (p > WRIST_MAX_POSITION) {
+            p = WRIST_MAX_POSITION;
+        } else if (p < WRIST_MIN_POSITION) {
+            p = WRIST_MIN_POSITION;
+        }
         WRIST_SERVO.setPosition(p);
     }
 
