@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import androidx.annotation.NonNull;
+
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.IMU;
@@ -87,6 +89,10 @@ public class TeleOpStateMachine {
                 retractOuttakeSlideAndSpin(outtake, telemetry);
                 break;
         }
+    }
+
+    public void setState(State state) {
+        this.state = state;
     }
 
     private void awaitSampleRotateInput(Gamepad gamepad, Telemetry telemetry) {

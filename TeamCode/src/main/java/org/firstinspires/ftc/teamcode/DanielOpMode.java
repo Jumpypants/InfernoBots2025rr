@@ -33,6 +33,10 @@ public class DanielOpMode extends LinearOpMode {
 
         TeleOpStateMachine stateMachine = new TeleOpStateMachine();
 
+        if (gamepad1.dpad_down) {
+            stateMachine.setState(TeleOpStateMachine.State.AwaitSampleRotateInput);
+        }
+
         while (opModeIsActive()) {
             driveBase.drive(gamepad1, imu.getRobotYawPitchRollAngles().getYaw());
 

@@ -79,6 +79,13 @@ public class DriveBase {
             rightBackPower /= maxPower;
         }
 
+        if (gamepad1.left_trigger > 0) {
+            leftFrontPower *= 0.5;
+            rightFrontPower *= 0.5;
+            leftBackPower *= 0.5;
+            rightBackPower *= 0.5;
+        }
+
         motors.get(0).set(leftFrontPower * VELOCITY_CONST);
         motors.get(1).set(rightFrontPower * VELOCITY_CONST);
         motors.get(2).set(leftBackPower * VELOCITY_CONST);

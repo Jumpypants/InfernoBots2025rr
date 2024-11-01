@@ -17,6 +17,11 @@ public class Outtake {
     public static double SLIDE_ROTATIONS_PER_INCH = 4.724;
     public static double ALLOWED_ERROR = 0.1;
 
+    public static double SLIDE_MAX_POSITION = 42;
+    public static double SLIDE_MIN_POSITION = 0;
+    public static double SPIN_MAX_POSITION = Math.PI / 2;
+    public static double SPIN_MIN_POSITION = 0;
+
     private double slidePosition = 0;
 
     public static double SPIN_OUT_POSITION = 0.0;
@@ -41,6 +46,12 @@ public class Outtake {
     public boolean stepSlideTo(double position, Telemetry telemetry) {
         slidePosition = getSlidePosition();
 
+        if (position > SLIDE_MAX_POSITION) {
+            position = SLIDE_MAX_POSITION;
+        } else if (position < SLIDE_MIN_POSITION) {
+            position = SLIDE_MIN_POSITION;
+        }
+
         if (Math.abs(slidePosition - position) < ALLOWED_ERROR) {
             SLIDE_MOTOR.set(0);
             return true;
@@ -60,6 +71,12 @@ public class Outtake {
     }
 
     public void setSpin(double position) {
+        if (position > SPIN_MAX_POSITION) {
+            position = SPIN_MAX_POSITION;
+        } else if (position < SPIN_MIN_POSITION) {
+            position = SPIN_MIN_POSITION;
+        }
+
         SPIN_SERVO.setPosition(position);
     }
 
