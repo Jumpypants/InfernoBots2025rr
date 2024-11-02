@@ -29,10 +29,10 @@ public class TeleOpStateMachine {
         RetractOuttakeSlideAndSpin,
     }
 
-    private State state = State.AwaitSampleRotateInput;
+    private State state = State.AwaitIntakeInput;
 
     private double sampleAngle = 0;
-    private double sampleDistance = 0;
+    private double sampleDistance = 10;
 
     private final ElapsedTime elapsedTime = new ElapsedTime();
 
@@ -128,7 +128,7 @@ public class TeleOpStateMachine {
     }
 
     private void extendToSample(Intake intake, Telemetry telemetry) {
-        if (intake.stepSlideTo(sampleDistance - Intake.EXTEND_TO_SAMPLE_OFFSET)) {
+        if (intake.stepSlideTo(sampleDistance - Intake.EXTEND_TO_SAMPLE_OFFSET, telemetry)) {
             state = State.WristToSample;
             elapsedTime.reset();
         }
@@ -143,7 +143,7 @@ public class TeleOpStateMachine {
 
     private void collectSample(Intake intake, Telemetry telemetry) {
         intake.setSpin(-1);
-        if (intake.stepSlideTo(sampleDistance)) {
+        if (intake.stepSlideTo(sampleDistance, telemetry)) {
             intake.setSpin(0);
             state = State.RetractIntakeSlideAndWrist;
         }
@@ -151,7 +151,7 @@ public class TeleOpStateMachine {
 
     private void retractIntakeSlideAndWrist(Intake intake, Telemetry telemetry) {
         intake.setWrist(Intake.WRIST_UP_POSITION);
-        if (intake.stepSlideTo(Intake.SLIDE_IN_POSITION)) {
+        if (intake.stepSlideTo(Intake.SLIDE_IN_POSITION, telemetry)) {
             state = State.TransferSampleToOuttake;
             elapsedTime.reset();
         }
