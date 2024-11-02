@@ -6,6 +6,8 @@ import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+
 @Config
 public class Intake {
     public static double WRIST_ROTATE_TIME = 2;
@@ -41,7 +43,9 @@ public class Intake {
         SLIDE_MOTOR.setInverted(true);
     }
 
-    public boolean stepSlideTo(double position) {
+    public boolean stepSlideTo(double position, Telemetry telemetry) {
+        telemetry.addData("Slide Position", getSlidePosition());
+
         if (position > SLIDE_MAX_POSITION) {
             position = SLIDE_MAX_POSITION;
         } else if (position < SLIDE_MIN_POSITION) {
