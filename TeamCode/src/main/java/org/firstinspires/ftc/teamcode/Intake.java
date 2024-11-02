@@ -1,28 +1,58 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.arcrobotics.ftclib.hardware.SimpleServo;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 @Config
 public class Intake {
-    public static double ROTATIONS_PER_INCH = 1.0;
+    public static double WRIST_ROTATE_TIME = 2;
+    public static double WRIST_DOWN_POSITION = 0.82;
+    public static double WRIST_UP_POSITION = 0.225;
+    public static double SLIDE_IN_POSITION = 0;
+    public static double TRANSFER_SPIN_TIME = 2;
+
+    public static double SLIDE_MAX_POSITION = 20;
+    public static double SLIDE_MIN_POSITION = 0;
+    public static double WRIST_MAX_POSITION = 0.82;
+    public static double WRIST_MIN_POSITION = 0.225;
+
+    public static double EXTEND_TO_SAMPLE_OFFSET = -2;
+    public static double SLIDE_ROTATIONS_PER_INCH = 4.4 * 3;
     public static double ALLOWED_ERROR = 0.1;
 
-    public static double KP = 0.1;
-    public static double KI = 0.01;
-    public static double KD = 0.001;
+    public static double KP = 0.07;
+    public static double KI = 0.0;
+    public static double KD = 0.0;
 
     private final Motor SLIDE_MOTOR;
+    private final SimpleServo WRIST_SERVO;
+    private final Motor SPIN_MOTOR;
 
-    private double slidePosition = 0.0;
+    private double slidePosition = 0;
 
     public Intake(HardwareMap hardwareMap) {
-        this.SLIDE_MOTOR = new Motor(hardwareMap, "intake");
+        this.SLIDE_MOTOR = new Motor(hardwareMap, "intakeSlide");
+        SLIDE_MOTOR.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
+        this.WRIST_SERVO = new SimpleServo(hardwareMap, "intakeWrist", 0, Math.PI / 2);
+        this.SPIN_MOTOR = new Motor(hardwareMap, "intakeSpin");
+        SLIDE_MOTOR.setInverted(true);
     }
 
-    public boolean stepSlideTo(double position) {
-        slidePosition = SLIDE_MOTOR.getCurrentPosition() * ROTATIONS_PER_INCH;
+    public boolean stepSlideTo(double position, Telemetry telemetry) {
+        telemetry.addData("Slide Position", getSlidePosition());
+
+        if (position > SLIDE_MAX_POSITION) {
+            position = SLIDE_MAX_POSITION;
+        } else if (position < SLIDE_MIN_POSITION) {
+            position = SLIDE_MIN_POSITION;
+        }
+
+        slidePosition = getSlidePosition();
 
         if (Math.abs(slidePosition - position) < ALLOWED_ERROR) {
             SLIDE_MOTOR.set(0);
@@ -40,7 +70,22 @@ public class Intake {
         return false;
     }
 
+
+    public void setWrist (double p) {
+        if (p > WRIST_MAX_POSITION) {
+            p = WRIST_MAX_POSITION;
+        } else if (p < WRIST_MIN_POSITION) {
+            p = WRIST_MIN_POSITION;
+        }
+        WRIST_SERVO.setPosition(p);
+    }
+
+    public void setSpin (double p) {
+        SPIN_MOTOR.set(p);
+    }
+
     public double getSlidePosition() {
+        slidePosition = (double) (SLIDE_MOTOR.getCurrentPosition()) / 360 * SLIDE_ROTATIONS_PER_INCH;
         return slidePosition;
     }
 }
