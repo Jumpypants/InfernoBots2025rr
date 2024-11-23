@@ -1,51 +1,55 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.dashboard.config.Config;
-import com.arcrobotics.ftclib.hardware.SimpleServo;
+import com.arcrobotics.ftclib.hardware.motors.CRServo;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 @Config
 public class Intake {
-    public static double WRIST_ROTATE_TIME = 2;
-    public static double WRIST_DOWN_POSITION = 0.82;
-    public static double WRIST_UP_POSITION = 0.225;
-    public static double SLIDE_IN_POSITION = 0;
-    public static double TRANSFER_SPIN_TIME = 2;
+    public static double WRIST_ROTATE_TIME = 1;
 
-    public static double SLIDE_MAX_POSITION = 20;
+    public static double WRIST_DOWN_POSITION = 1;
+    public static double WRIST_MID_POSITION = 0.7;
+    public static double WRIST_UP_POSITION = 0.3;
+
+    public static double SLIDE_IN_POSITION = 4;
+    public static double TRANSFER_SPIN_TIME = 1;
+
+    public static double SLIDE_MAX_POSITION = 42;
     public static double SLIDE_MIN_POSITION = 0;
     public static double WRIST_MAX_POSITION = 0.82;
     public static double WRIST_MIN_POSITION = 0.225;
 
     public static double EXTEND_TO_SAMPLE_OFFSET = -2;
-    public static double SLIDE_ROTATIONS_PER_INCH = 4.4 * 3;
-    public static double ALLOWED_ERROR = 0.1;
+    public static double SLIDE_TICKS_PER_INCH = 0.0454545;
+    public static double ALLOWED_ERROR = 1;
 
-    public static double KP = 0.07;
+    public static double KP = 0.028;
     public static double KI = 0.0;
     public static double KD = 0.0;
 
     private final Motor SLIDE_MOTOR;
-    private final SimpleServo WRIST_SERVO;
-    private final Motor SPIN_MOTOR;
+    private final Servo WRIST_SERVO;
+    private final CRServo SPIN_SERVO;
 
     private double slidePosition = 0;
 
     public Intake(HardwareMap hardwareMap) {
-        this.SLIDE_MOTOR = new Motor(hardwareMap, "intakeSlide");
+        SLIDE_MOTOR = new Motor(hardwareMap, "intakeSlide");
+        SLIDE_MOTOR.resetEncoder();
         SLIDE_MOTOR.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
-        this.WRIST_SERVO = new SimpleServo(hardwareMap, "intakeWrist", 0, Math.PI / 2);
-        this.SPIN_MOTOR = new Motor(hardwareMap, "intakeSpin");
         SLIDE_MOTOR.setInverted(true);
+
+        WRIST_SERVO = hardwareMap.get(Servo.class, "intakeWrist");
+        SPIN_SERVO = new CRServo(hardwareMap, "intakeSpin");
+        SPIN_SERVO.setRunMode(CRServo.RunMode.RawPower);
     }
 
     public boolean stepSlideTo(double position, Telemetry telemetry) {
-        telemetry.addData("Slide Position", getSlidePosition());
-
         if (position > SLIDE_MAX_POSITION) {
             position = SLIDE_MAX_POSITION;
         } else if (position < SLIDE_MIN_POSITION) {
@@ -59,7 +63,7 @@ public class Intake {
             return true;
         }
 
-        PIDController pidController = new PIDController(KP, KI, KD);
+        PIDController pidController = new PIDController(KP / SLIDE_TICKS_PER_INCH, KI, KD);
 
         pidController.setSetpoint(position);
 
@@ -72,20 +76,24 @@ public class Intake {
 
 
     public void setWrist (double p) {
-        if (p > WRIST_MAX_POSITION) {
-            p = WRIST_MAX_POSITION;
-        } else if (p < WRIST_MIN_POSITION) {
-            p = WRIST_MIN_POSITION;
-        }
+//        if (p > WRIST_MAX_POSITION) {
+//            p = WRIST_MAX_POSITION;
+//        } else if (p < WRIST_MIN_POSITION) {
+//            p = WRIST_MIN_POSITION;
+//        }
         WRIST_SERVO.setPosition(p);
     }
 
-    public void setSpin (double p) {
-        SPIN_MOTOR.set(p);
+    public double getSlidePosition() {
+        slidePosition = (double) (SLIDE_MOTOR.getCurrentPosition()) * SLIDE_TICKS_PER_INCH;
+        return slidePosition;
     }
 
-    public double getSlidePosition() {
-        slidePosition = (double) (SLIDE_MOTOR.getCurrentPosition()) / 360 * SLIDE_ROTATIONS_PER_INCH;
-        return slidePosition;
+    public Motor getSlideMotor() {
+        return SLIDE_MOTOR;
+    }
+
+    public CRServo getSpinServo() {
+        return SPIN_SERVO;
     }
 }
