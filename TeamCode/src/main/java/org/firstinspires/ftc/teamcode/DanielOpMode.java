@@ -50,6 +50,23 @@ public class DanielOpMode extends LinearOpMode {
             if (gamepad1.y) {
                 imu.resetYaw();
             }
+
+            if (gamepad1.x) {
+                intake.setWrist(Intake.WRIST_UP_POSITION);
+            }
+            if (gamepad1.a) {
+                intake.setWrist(Intake.WRIST_MID_POSITION);
+            }
+            if (gamepad1.b) {
+                intake.setWrist(Intake.WRIST_DOWN_POSITION);
+            }
+            if (gamepad1.dpad_right) {
+                intake.setClaw(Intake.CLAW_OPEN_POSITION);
+            }
+            if (gamepad1.dpad_left) {
+                intake.setClaw(Intake.CLAW_CLOSED_POSITION);
+            }
+
 //
 //            if (gamepad2.dpad_left) {
 //                outtake.setSpin(Outtake.SPIN_OUT_POSITION);

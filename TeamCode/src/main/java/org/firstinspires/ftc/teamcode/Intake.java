@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.dashboard.config.Config;
-import com.arcrobotics.ftclib.hardware.motors.CRServo;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -17,12 +16,13 @@ public class Intake {
     public static double WRIST_UP_POSITION = 0.3;
 
     public static double SLIDE_IN_POSITION = 4;
-    public static double TRANSFER_SPIN_TIME = 1;
+    public static double TRANSFER_TIME = 1;
 
     public static double SLIDE_MAX_POSITION = 42;
     public static double SLIDE_MIN_POSITION = 0;
-    public static double WRIST_MAX_POSITION = 0.82;
-    public static double WRIST_MIN_POSITION = 0.225;
+
+    public static double CLAW_OPEN_POSITION = 0.22;
+    public static double CLAW_CLOSED_POSITION = 0.0;
 
     public static double EXTEND_TO_SAMPLE_OFFSET = -2;
     public static double SLIDE_TICKS_PER_INCH = 0.0454545;
@@ -34,7 +34,7 @@ public class Intake {
 
     private final Motor SLIDE_MOTOR;
     private final Servo WRIST_SERVO;
-    private final CRServo SPIN_SERVO;
+    private final Servo CLAW_SERVO;
 
     private double slidePosition = 0;
 
@@ -45,8 +45,7 @@ public class Intake {
         SLIDE_MOTOR.setInverted(true);
 
         WRIST_SERVO = hardwareMap.get(Servo.class, "intakeWrist");
-        SPIN_SERVO = new CRServo(hardwareMap, "intakeSpin");
-        SPIN_SERVO.setRunMode(CRServo.RunMode.RawPower);
+        CLAW_SERVO = hardwareMap.get(Servo.class, "intakeClaw");
     }
 
     public boolean stepSlideTo(double position, Telemetry telemetry) {
@@ -93,7 +92,7 @@ public class Intake {
         return SLIDE_MOTOR;
     }
 
-    public CRServo getSpinServo() {
-        return SPIN_SERVO;
+    public void setClaw (double p) {
+        CLAW_SERVO.setPosition(p);
     }
 }
