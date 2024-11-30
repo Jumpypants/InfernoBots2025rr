@@ -27,6 +27,7 @@ public class TeleOpStateMachine {
         AwaitDumpInput,
         DumpSample,
         RetractOuttakeSlideAndSpin,
+        RetractOuttakeExtendIntake,
         OuttakeManualControl,
         IntakeManualControl,
     }
@@ -97,6 +98,9 @@ public class TeleOpStateMachine {
                 break;
             case RetractOuttakeSlideAndSpin:
                 retractOuttakeSlideAndSpin(outtake, gamepad2, telemetry);
+                break;
+            case RetractOuttakeExtendIntake:
+                retractOuttakeExtendIntake(outtake, intake, gamepad2, telemetry);
                 break;
 
             case OuttakeManualControl:
@@ -285,11 +289,25 @@ public class TeleOpStateMachine {
         if (outtake.stepSlideTo(Outtake.DOWN_POSITION, telemetry)) {
             outtake.getSlideMotor().set(0);
             state = State.AwaitIntakeInput;
-            outtake.getSlideMotor().resetEncoder();
         }
 
         if (gamepad.x) {
             state = State.OuttakeManualControl;
+        }
+
+        if (gamepad.left_trigger > 0) {
+            state = State.RetractOuttakeExtendIntake;
+        }
+    }
+
+    private void retractOuttakeExtendIntake(Outtake outtake, Intake intake, Gamepad gamepad2, Telemetry telemetry) {
+        intake.setWrist(Intake.WRIST_MID_POSITION);
+        if (outtake.stepSlideTo(Outtake.DOWN_POSITION, telemetry)) {
+            outtake.getSlideMotor().set(0);
+            state = State.ExtendToSample;
+        }
+        if (intake.stepSlideTo(sampleDistance + Intake.EXTEND_TO_SAMPLE_OFFSET, telemetry)) {
+            intake.getSlideMotor().set(0);
         }
     }
 
