@@ -9,20 +9,20 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 @Config
 public class Intake {
-    public static double WRIST_ROTATE_TIME = 1;
+    public static double WRIST_ROTATE_TIME = 0;
 
-    public static double WRIST_DOWN_POSITION = 1;
-    public static double WRIST_MID_POSITION = 0.7;
-    public static double WRIST_UP_POSITION = 0.3;
+    public static double WRIST_DOWN_POSITION = 0.08;
+    public static double WRIST_MID_POSITION = 0.25;
+    public static double WRIST_UP_POSITION = 0.5;
 
-    public static double SLIDE_IN_POSITION = 4;
+    public static double SLIDE_IN_POSITION = 1;
     public static double TRANSFER_TIME = 1;
 
     public static double SLIDE_MAX_POSITION = 42;
     public static double SLIDE_MIN_POSITION = 0;
 
     public static double CLAW_OPEN_POSITION = 0.22;
-    public static double CLAW_CLOSED_POSITION = 0.0;
+    public static double CLAW_CLOSED_POSITION = 0.09;
 
     public static double EXTEND_TO_SAMPLE_OFFSET = -2;
     public static double SLIDE_TICKS_PER_INCH = 0.0454545;
