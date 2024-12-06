@@ -50,37 +50,8 @@ public class DanielOpMode extends LinearOpMode {
             if (gamepad1.y) {
                 imu.resetYaw();
             }
-
-            if (gamepad1.x) {
-                intake.setWrist(Intake.WRIST_UP_POSITION);
-            }
-            if (gamepad1.a) {
-                intake.setWrist(Intake.WRIST_MID_POSITION);
-            }
-            if (gamepad1.b) {
-                intake.setWrist(Intake.WRIST_DOWN_POSITION);
-            }
-            if (gamepad1.dpad_right) {
-                intake.setClaw(Intake.CLAW_OPEN_POSITION);
-            }
-            if (gamepad1.dpad_left) {
-                intake.setClaw(Intake.CLAW_CLOSED_POSITION);
-            }
-
-//
-//            if (gamepad2.dpad_left) {
-//                outtake.setSpin(Outtake.SPIN_OUT_POSITION);
-//            }
-//
-            if (gamepad2.dpad_right) {
-                outtake.setSpin(0);
-            }
-            //outtake.stepSlideTo(outtake.getSlidePosition() - gamepad2.left_stick_y * 2, telemetry);
-
-            //intake.stepSlideTo(targetPos, dashboardTelemetry);
-
             driveBase.drive(gamepad1, imu.getRobotYawPitchRollAngles().getYaw(), dashboardTelemetry);
-
+            //intake.setWrist(Intake.WRIST_DOWN_POSITION);
             stateMachine.step(
                     intake,
                     outtake,
@@ -91,8 +62,6 @@ public class DanielOpMode extends LinearOpMode {
                     gamepad2,
                     sampleFinder
             );
-
-            dashboardTelemetry.addData("slide pos", intake.getSlidePosition());
 
             dashboardTelemetry.update();
         }

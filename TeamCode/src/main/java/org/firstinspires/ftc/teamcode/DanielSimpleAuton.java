@@ -20,14 +20,15 @@ public class DanielSimpleAuton extends LinearOpMode {
     public void runOpMode() {
         waitForStart();
 
-        DriveBase driveBase = new DriveBase(hardwareMap);
+        Outtake outtake = new Outtake(hardwareMap);
 
         FtcDashboard dashboard = FtcDashboard.getInstance();
         Telemetry dashboardTelemetry = dashboard.getTelemetry();
 
-        while (opModeIsActive()) {
+        outtake.getSlideMotor().resetEncoder();
 
-            driveBase.strafe(0.5);
+        while (opModeIsActive()) {
+            outtake.stepSlideTo(Outtake.HIGH_BASKET_POSITION, dashboardTelemetry);
 
             dashboardTelemetry.update();
         }

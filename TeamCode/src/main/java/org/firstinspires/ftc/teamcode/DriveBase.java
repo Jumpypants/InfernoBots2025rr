@@ -34,13 +34,20 @@ public class DriveBase {
         Motor frontLeft = new Motor(hardwareMap, "leftFront");
         frontLeft.setInverted(true);
         frontLeft.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
+//        frontLeft.setRunMode(Motor.RunMode.RawPower);
+
         Motor frontRight = new Motor(hardwareMap, "rightFront");
         frontRight.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
+//        frontRight.setRunMode(Motor.RunMode.RawPower);
+
         Motor backLeft = new Motor(hardwareMap, "leftBack");
         backLeft.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
         backLeft.setInverted(true);
+//        backLeft.setRunMode(Motor.RunMode.RawPower);
+
         Motor backRight = new Motor(hardwareMap, "rightBack");
         backRight.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
+//        backRight.setRunMode(Motor.RunMode.RawPower);
 
         ArrayList<Motor> driveMotors = new ArrayList<Motor>();
         driveMotors.add(frontLeft);
@@ -106,6 +113,54 @@ public class DriveBase {
         motors.get(3).set(rightBackPower);
     }
 
+    public double strafe (Gamepad gamepad1, double heading, Telemetry telemetry) {
+        resetMotorPowers();
+
+        double x = gamepad1.left_stick_x;
+        double y = gamepad1.left_stick_y;
+
+        // Rotate the joystick vector by the heading for field-centric driving
+        double cosHeading = Math.cos(Math.toRadians(heading));
+        double sinHeading = Math.sin(Math.toRadians(heading));
+
+        double strafe = x * cosHeading - y * sinHeading;
+        double drive = -(x * sinHeading + y * cosHeading);
+
+        double leftFrontPower = strafe;
+        double rightFrontPower = -strafe;
+        double leftBackPower = -strafe;
+        double rightBackPower = strafe;
+
+        double maxPower = Math.max(Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower)), Math.max(Math.abs(leftBackPower), Math.abs(rightBackPower)));
+        if (maxPower > 1) {
+            leftFrontPower /= maxPower;
+            rightFrontPower /= maxPower;
+            leftBackPower /= maxPower;
+            rightBackPower /= maxPower;
+        }
+
+        if (gamepad1.left_trigger > 0) {
+            leftFrontPower *= 0.5;
+            rightFrontPower *= 0.5;
+            leftBackPower *= 0.5;
+            rightBackPower *= 0.5;
+        }
+
+        if (gamepad1.right_trigger > 0) {
+            leftFrontPower *= 0.2;
+            rightFrontPower *= 0.2;
+            leftBackPower *= 0.2;
+            rightBackPower *= 0.2;
+        }
+
+        motors.get(0).set(leftFrontPower);
+        motors.get(1).set(rightFrontPower);
+        motors.get(2).set(leftBackPower );
+        motors.get(3).set(rightBackPower);
+
+        return drive;
+    }
+
     public boolean stepRotateTo(double target, double heading, Telemetry telemetry, double kpMultiplier) {
         // Normalize the target heading relative to the current heading
         double rawDifference = target - heading;
@@ -146,8 +201,6 @@ public class DriveBase {
         return false;
     }
 
-
-
     public void rotate(double power) {
         Motor leftFrontDrive = motors.get(0);
         Motor rightFrontDrive = motors.get(1);
@@ -164,38 +217,5 @@ public class DriveBase {
         for (Motor m : motors) {
             m.set(0);
         }
-    }
-
-    public void strafe(double x) {
-        resetMotorPowers();
-
-        double y = 0;
-        double heading = 0;
-
-        // Rotate the joystick vector by the heading for field-centric driving
-        double cosHeading = Math.cos(Math.toRadians(heading));
-        double sinHeading = Math.sin(Math.toRadians(heading));
-
-        double strafe = x * cosHeading - y * sinHeading;
-        double drive = -(x * sinHeading + y * cosHeading);
-        double turn = 0;
-
-        double leftFrontPower = drive + turn + strafe;
-        double rightFrontPower = drive - turn - strafe;
-        double leftBackPower = drive + turn - strafe;
-        double rightBackPower = drive - turn + strafe;
-
-        double maxPower = Math.max(Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower)), Math.max(Math.abs(leftBackPower), Math.abs(rightBackPower)));
-        if (maxPower > 1) {
-            leftFrontPower /= maxPower;
-            rightFrontPower /= maxPower;
-            leftBackPower /= maxPower;
-            rightBackPower /= maxPower;
-        }
-
-        motors.get(0).set(leftFrontPower);
-        motors.get(1).set(rightFrontPower);
-        motors.get(2).set(leftBackPower );
-        motors.get(3).set(rightBackPower);
     }
 }

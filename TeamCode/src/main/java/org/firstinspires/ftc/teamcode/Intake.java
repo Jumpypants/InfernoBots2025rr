@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.arcrobotics.ftclib.hardware.motors.CRServo;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -9,22 +10,21 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 @Config
 public class Intake {
-    public static double WRIST_ROTATE_TIME = 0;
+    public static double WRIST_DOWN_POSITION = 0.05;
+    public static double WRIST_MID_POSITION = 0.45;
+    public static double WRIST_UP_POSITION = 0.75;
 
-    public static double WRIST_DOWN_POSITION = 0.08;
-    public static double WRIST_MID_POSITION = 0.25;
-    public static double WRIST_UP_POSITION = 0.5;
+    public static double SPIN_IN = 1;
+    public static double SPIN_OUT = -1;
+    public static double SPIN_STOP = 0;
 
-    public static double SLIDE_IN_POSITION = 1;
-    public static double TRANSFER_TIME = 1;
+    public static double SLIDE_IN_POSITION = 2;
+    public static double TRANSFER_SPIN_TIME = 0.6;
 
     public static double SLIDE_MAX_POSITION = 42;
     public static double SLIDE_MIN_POSITION = 0;
 
-    public static double CLAW_OPEN_POSITION = 0.22;
-    public static double CLAW_CLOSED_POSITION = 0.09;
-
-    public static double EXTEND_TO_SAMPLE_OFFSET = -2;
+    public static double INITIAL_EXTENSION_DISTANCE = 8;
     public static double SLIDE_TICKS_PER_INCH = 0.0454545;
     public static double ALLOWED_ERROR = 1;
 
@@ -34,7 +34,7 @@ public class Intake {
 
     private final Motor SLIDE_MOTOR;
     private final Servo WRIST_SERVO;
-    private final Servo CLAW_SERVO;
+    private final CRServo SPIN_SERVO;
 
     private double slidePosition = 0;
 
@@ -45,7 +45,8 @@ public class Intake {
         SLIDE_MOTOR.setInverted(true);
 
         WRIST_SERVO = hardwareMap.get(Servo.class, "intakeWrist");
-        CLAW_SERVO = hardwareMap.get(Servo.class, "intakeClaw");
+        SPIN_SERVO = new CRServo(hardwareMap, "intakeSpin");
+        SPIN_SERVO.setRunMode(CRServo.RunMode.RawPower);
     }
 
     public boolean stepSlideTo(double position, Telemetry telemetry) {
@@ -73,13 +74,11 @@ public class Intake {
         return false;
     }
 
+    public void setSpin (double p) {
+        SPIN_SERVO.set(p);
+    }
 
     public void setWrist (double p) {
-//        if (p > WRIST_MAX_POSITION) {
-//            p = WRIST_MAX_POSITION;
-//        } else if (p < WRIST_MIN_POSITION) {
-//            p = WRIST_MIN_POSITION;
-//        }
         WRIST_SERVO.setPosition(p);
     }
 
@@ -92,7 +91,7 @@ public class Intake {
         return SLIDE_MOTOR;
     }
 
-    public void setClaw (double p) {
-        CLAW_SERVO.setPosition(p);
+    public CRServo getSpinServo() {
+        return SPIN_SERVO;
     }
 }
