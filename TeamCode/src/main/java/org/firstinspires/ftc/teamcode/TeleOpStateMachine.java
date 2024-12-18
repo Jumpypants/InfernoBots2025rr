@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import android.graphics.Color;
+
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.IMU;
@@ -42,7 +44,6 @@ public class TeleOpStateMachine {
     public void step(
             Intake intake,
             Outtake outtake,
-            DriveBase drivebase,
             Telemetry telemetry,
             IMU imu,
             Gamepad gamepad1,
@@ -59,7 +60,7 @@ public class TeleOpStateMachine {
                 selectSample(sampleFinder, telemetry, imu);
                 break;
             case RotateToSample:
-                rotateToSample(drivebase, telemetry, imu);
+                //rotateToSample(drivebase, telemetry, imu);
                 break;
             case AwaitIntakeInput:
                 awaitIntakeInput(gamepad2, intake);
@@ -68,7 +69,7 @@ public class TeleOpStateMachine {
                 extendToSample(intake, outtake, gamepad2, telemetry);
                 break;
             case CollectSample:
-                collectSample(intake, drivebase, telemetry, imu, gamepad2);
+                collectSample(intake, telemetry, imu, gamepad2);
                 break;
             case RetractIntakeSlideAndWrist:
                 retractIntakeSlideAndWrist(intake, gamepad2, telemetry);
@@ -162,10 +163,8 @@ public class TeleOpStateMachine {
         }
     }
 
-    private void collectSample(Intake intake, DriveBase driveBase, Telemetry telemetry, IMU imu, Gamepad gamepad) {
-        if (gamepad.left_stick_y * gamepad.left_stick_x > 0.1) {
-            intake.stepSlideTo(intake.getSlidePosition() + driveBase.strafe(gamepad, imu.getRobotYawPitchRollAngles().getYaw(), telemetry) * 1.2, telemetry);
-        }
+    private void collectSample(Intake intake, Telemetry telemetry, IMU imu, Gamepad gamepad) {
+        intake.stepSlideTo(intake.getSlidePosition() - gamepad.left_stick_y * 2, telemetry);
 
         if (gamepad.right_bumper) {
             intake.setSpin(Intake.SPIN_IN);
@@ -182,7 +181,7 @@ public class TeleOpStateMachine {
             intake.setWrist(Intake.WRIST_MID_POSITION);
         }
 
-        if (gamepad.right_trigger > 0.1) {
+        if (gamepad.right_trigger > 0.1 || intake.getColor(telemetry) == Color.YELLOW) {
             state = State.RetractIntakeSlideAndWrist;
             elapsedTime.reset();
             intake.setSpin(Intake.SPIN_STOP);

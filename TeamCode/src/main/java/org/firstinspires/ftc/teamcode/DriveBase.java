@@ -34,20 +34,20 @@ public class DriveBase {
         Motor frontLeft = new Motor(hardwareMap, "leftFront");
         frontLeft.setInverted(true);
         frontLeft.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
-//        frontLeft.setRunMode(Motor.RunMode.RawPower);
+        frontLeft.setRunMode(Motor.RunMode.RawPower);
 
         Motor frontRight = new Motor(hardwareMap, "rightFront");
         frontRight.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
-//        frontRight.setRunMode(Motor.RunMode.RawPower);
+        frontRight.setRunMode(Motor.RunMode.RawPower);
 
         Motor backLeft = new Motor(hardwareMap, "leftBack");
         backLeft.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
         backLeft.setInverted(true);
-//        backLeft.setRunMode(Motor.RunMode.RawPower);
+        backLeft.setRunMode(Motor.RunMode.RawPower);
 
         Motor backRight = new Motor(hardwareMap, "rightBack");
         backRight.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
-//        backRight.setRunMode(Motor.RunMode.RawPower);
+        backRight.setRunMode(Motor.RunMode.RawPower);
 
         ArrayList<Motor> driveMotors = new ArrayList<Motor>();
         driveMotors.add(frontLeft);
@@ -85,7 +85,8 @@ public class DriveBase {
         double leftBackPower = drive + turn - strafe;
         double rightBackPower = drive - turn + strafe;
 
-        double maxPower = Math.max(Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower)), Math.max(Math.abs(leftBackPower), Math.abs(rightBackPower)));
+        //double maxPower = Math.max(Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower)), Math.max(Math.abs(leftBackPower), Math.abs(rightBackPower)));
+        double maxPower = 1;
         if (maxPower > 1) {
             leftFrontPower /= maxPower;
             rightFrontPower /= maxPower;
@@ -217,5 +218,17 @@ public class DriveBase {
         for (Motor m : motors) {
             m.set(0);
         }
+    }
+
+    public void moveSideWays(int power) {
+        Motor leftFrontDrive = motors.get(0);
+        Motor rightFrontDrive = motors.get(1);
+        Motor leftBackDrive = motors.get(2);
+        Motor rightBackDrive = motors.get(3);
+
+        leftFrontDrive.set(power);
+        rightFrontDrive.set(-power);
+        leftBackDrive.set(-power);
+        rightBackDrive.set(power);
     }
 }
