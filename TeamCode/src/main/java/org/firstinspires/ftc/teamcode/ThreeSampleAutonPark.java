@@ -19,8 +19,8 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import java.util.ArrayList;
 import java.util.Objects;
 
-@Autonomous(name = "--ThreeSampleAuton", group = "Autonomous")
-public class ThreeSampleAuton extends LinearOpMode {
+@Autonomous(name = "--ThreeSampleAutonPark", group = "Autonomous")
+public class ThreeSampleAutonPark extends LinearOpMode {
     FtcDashboard dashboard = FtcDashboard.getInstance();
     Telemetry dashboardTelemetry = dashboard.getTelemetry();
 
@@ -206,10 +206,18 @@ public class ThreeSampleAuton extends LinearOpMode {
     }
 
     private class RetractOuttake implements Action {
+        private final ElapsedTime elapsedTime = new ElapsedTime();
+        private boolean initialized = false;
+
         @Override
         public boolean run(@NonNull TelemetryPacket telemetryPacket) {
             dashboardTelemetry.addData("Action", "RetractOuttake");
             dashboardTelemetry.update();
+            if (!initialized) {
+                elapsedTime.reset();
+                initialized = true;
+            }
+            if (elapsedTime.seconds() < 1) return true;
             if (outtake.stepSlideTo(Outtake.DOWN_POSITION, telemetryPacket)) {
                 outtake.setSlidePower(0);
                 outtake.getSlideMotor().resetEncoder();
@@ -247,8 +255,8 @@ public class ThreeSampleAuton extends LinearOpMode {
         outtake.getSlideMotor().resetEncoder();
 
         Pose2d beginPos = new Pose2d(-38, -60, Math.PI * 1.5);
-        Pose2d basketPos = new Pose2d(-59.5, -53.25, Math.PI * 1.75);
-        Pose2d endPos = new Pose2d(-55, -50, Math.PI * 0.5);
+        Pose2d basketPos = new Pose2d(-58.5, -53.25, Math.PI * 1.75);
+        Pose2d endPos = new Pose2d(55, -50, Math.PI * 0.5);
 
         MecanumDrive drive = new MecanumDrive(hardwareMap, beginPos);
 
@@ -262,11 +270,11 @@ public class ThreeSampleAuton extends LinearOpMode {
 
         TrajectoryActionBuilder goToSample1 = drive.actionBuilder(beginPos)
                 .setTangent(0)
-                .splineToLinearHeading(new Pose2d(-36, -31.5, Math.PI * 0.75), Math.PI / 2);
+                .splineToLinearHeading(new Pose2d(-36.5, -31.5, Math.PI * 0.75), Math.PI / 2);
 
         TrajectoryActionBuilder goToSample2 = drive.actionBuilder(beginPos)
                 .setTangent(0)
-                .splineToLinearHeading(new Pose2d(-47, -31.5, Math.PI * 0.75), Math.PI / 2);
+                .splineToLinearHeading(new Pose2d(-47, -30.5, Math.PI * 0.75), Math.PI / 2);
 
 //        TrajectoryActionBuilder goToSample3 = drive.actionBuilder(beginPos)
 //                .setTangent(0)

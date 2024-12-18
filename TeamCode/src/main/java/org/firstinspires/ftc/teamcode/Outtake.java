@@ -14,7 +14,7 @@ public class Outtake {
     private final Servo SPIN_SERVO;
 
     public static double SLIDE_INCH_PER_ROTATION = 4.724;
-    public static double ALLOWED_ERROR = 1;
+    public static double ALLOWED_ERROR = 2.5;
 
     public static double SLIDE_MAX_POSITION = 42;
     public static double SLIDE_MIN_POSITION = 0;
@@ -26,11 +26,11 @@ public class Outtake {
     public static double HIGH_BASKET_POSITION = 41;
     public static double LOW_BASKET_POSITION = 24;
     public static double DOWN_POSITION = 0.0;
-    public static double TIME_TO_SPIN = 0.9;
+    public static double TIME_TO_SPIN = 1;
 
-    public static double KP = 0.4;
+    public static double KP = 0.35;
     public static double KI = 0.0;
-    public static double KD = 0.0;
+    public static double KD = 0.05;
     public static double KF = 0.21;
 
     public Outtake(HardwareMap hardwareMap) {
