@@ -1,11 +1,11 @@
-package org.firstinspires.ftc.teamcode.teleopActions;
+package org.firstinspires.ftc.teamcode.murphy;
 
-public class TeleOpSequentialAction extends TeleOpAction {
-    private final TeleOpAction[] actions;
+public class MurphySequentialAction extends MurphyAction {
+    private final MurphyAction[] actions;
 
     private int currentActionIndex = 0;
 
-    public TeleOpSequentialAction(TeleOpAction... actions) {
+    public MurphySequentialAction(MurphyAction... actions) {
         super();
         this.actions = actions;
     }

@@ -1,11 +1,11 @@
-package org.firstinspires.ftc.teamcode.teleopActions;
+package org.firstinspires.ftc.teamcode.murphy;
 
-public class TeleOpParallelAction extends TeleOpAction {
-    private final TeleOpAction[] actions;
+public class MurphyParallelAction extends MurphyAction {
+    private final MurphyAction[] actions;
 
     private final boolean stopOnFirstCompletion;
 
-    public TeleOpParallelAction(boolean stopOnFirstCompletion, TeleOpAction... actions) {
+    public MurphyParallelAction(boolean stopOnFirstCompletion, MurphyAction... actions) {
         super();
         this.actions = actions;
         this.stopOnFirstCompletion = stopOnFirstCompletion;
@@ -15,7 +15,7 @@ public class TeleOpParallelAction extends TeleOpAction {
     public boolean step() {
         boolean runAgain = false;
 
-        for (TeleOpAction action : actions) {
+        for (MurphyAction action : actions) {
             if (action.step()) {
                 runAgain = true;
                 if (stopOnFirstCompletion) {
