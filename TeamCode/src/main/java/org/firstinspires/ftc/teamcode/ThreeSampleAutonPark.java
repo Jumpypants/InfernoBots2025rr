@@ -15,6 +15,10 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.subsystems.Intake;
+import org.firstinspires.ftc.teamcode.subsystems.Outtake;
+import org.firstinspires.ftc.teamcode.vision.Sample;
+import org.firstinspires.ftc.teamcode.vision.SampleFinder;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -62,7 +66,7 @@ public class ThreeSampleAutonPark extends LinearOpMode {
                 samples = sampleFinder.get(dashboardTelemetry);
             }
 
-            samples.removeIf(sample -> !Objects.equals(sample.color, "Yellow"));
+            //samples.removeIf(sample -> !Objects.equals(sample.color, "Yellow"));
 
             if (samples.isEmpty()) return false;
 

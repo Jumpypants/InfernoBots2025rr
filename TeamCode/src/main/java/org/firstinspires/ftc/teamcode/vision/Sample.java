@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.vision;
 
 import androidx.annotation.NonNull;
 
@@ -11,11 +11,11 @@ public class Sample {
     // TODO: tune this value
     public static final double TO_INCHES_RATIO = 0.0393701;
 
-    double x, y, z;
+    private double x, y, z;
 
-    String color;
+    private String color;
 
-    RotatedRect rect;
+    private RotatedRect rect;
 
     public Sample(double x, double y, double z, String color, RotatedRect rect) {
         this.x = toInches(x);
@@ -40,5 +40,21 @@ public class Sample {
 
     public double toInches(double a) {
         return a * TO_INCHES_RATIO;
+    }
+
+    public double getX() {
+        return x;
+    }
+
+    public double getY() {
+        return y;
+    }
+
+    public double getZ() {
+        return z;
+    }
+
+    public String getColor() {
+        return color;
     }
 }

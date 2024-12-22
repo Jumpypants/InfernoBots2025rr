@@ -12,6 +12,9 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.arcrobotics.ftclib.drivebase.MecanumDrive;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.subsystems.Intake;
+import org.firstinspires.ftc.teamcode.subsystems.Outtake;
+import org.firstinspires.ftc.teamcode.vision.SampleFinder;
 
 @TeleOp(name = "--DanielOpMode")
 
@@ -37,7 +40,7 @@ public class DanielOpMode extends LinearOpMode {
         FtcDashboard dashboard = FtcDashboard.getInstance();
         Telemetry dashboardTelemetry = dashboard.getTelemetry();
 
-        TeleOpStateMachine stateMachine = new TeleOpStateMachine();
+        TeleOpStateMachineV0 stateMachine = new TeleOpStateMachineV0();
 
 
         while (opModeIsActive()) {
@@ -48,9 +51,17 @@ public class DanielOpMode extends LinearOpMode {
                 outtake.getSlideMotor().resetEncoder();
             }
 
-//            if (gamepad2.a) {
-//                intake.setWrist(Intake.WRIST_DOWN_POSITION);
-//            }
+            if (gamepad2.a) {
+                intake.setWrist(Intake.WRIST_DOWN_POSITION);
+            }
+
+            if (gamepad2.b) {
+                intake.setWrist(Intake.WRIST_MID_POSITION);
+            }
+
+            if (gamepad2.y) {
+                intake.setWrist(Intake.WRIST_UP_POSITION);
+            }
 
             if (gamepad1.y) {
                 imu.resetYaw();
