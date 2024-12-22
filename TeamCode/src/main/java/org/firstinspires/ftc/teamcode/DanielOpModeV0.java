@@ -19,7 +19,7 @@ import org.firstinspires.ftc.teamcode.vision.SampleFinder;
 @TeleOp(name = "--DanielOpMode")
 
 @Config
-public class DanielOpMode extends LinearOpMode {
+public class DanielOpModeV0 extends LinearOpMode {
     public static double targetPos = 0;
 
     @Override

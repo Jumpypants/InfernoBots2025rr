@@ -1,11 +1,11 @@
-package org.firstinspires.ftc.teamcode.teleopActions;
+package org.firstinspires.ftc.teamcode.murphy;
 
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-public abstract class TeleOpAction {
+public abstract class MurphyAction {
     private final ElapsedTime ELAPSED_TIME = new ElapsedTime();
 
-    public TeleOpAction() {
+    public MurphyAction() {
         ELAPSED_TIME.reset();
     }
 
