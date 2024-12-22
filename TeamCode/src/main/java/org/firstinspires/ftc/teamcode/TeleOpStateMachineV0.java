@@ -8,11 +8,16 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.subsystems.DriveBase;
+import org.firstinspires.ftc.teamcode.subsystems.Intake;
+import org.firstinspires.ftc.teamcode.subsystems.Outtake;
+import org.firstinspires.ftc.teamcode.vision.Sample;
+import org.firstinspires.ftc.teamcode.vision.SampleFinder;
 
 import java.util.ArrayList;
 
 @Config
-public class TeleOpStateMachine {
+public class TeleOpStateMachineV0 {
     public enum State {
         AwaitSampleRotateInput,
         SelectSample,

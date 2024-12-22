@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.vision;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -57,7 +57,7 @@ public class SampleFinder {
         ArrayList<Sample> samples = getSampleList(stones);
 
         // Sort the stones by z distance in ascending order
-        samples.sort(Comparator.comparingDouble(stone -> stone.z));
+        samples.sort(Comparator.comparingDouble(Sample::getZ));
 
         // Print the samples
         for (int i = 0; i < samples.size(); i++) {

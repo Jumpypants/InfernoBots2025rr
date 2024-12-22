@@ -1,21 +1,21 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.subsystems;
 
 import android.graphics.Color;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.arcrobotics.ftclib.hardware.motors.CRServo;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
-import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.PIDController;
 
 @Config
 public class Intake {
-    public static double WRIST_DOWN_POSITION = 0.22;
+    public static double WRIST_DOWN_POSITION = 0.195;
     public static double WRIST_MID_POSITION = 0.51;
     public static double WRIST_UP_POSITION = 0.81;
 
@@ -39,7 +39,8 @@ public class Intake {
 
     private final Motor SLIDE_MOTOR;
 
-    private final Servo WRIST_SERVO;
+    private final Servo WRIST_LEFT_SERVO;
+    private final Servo WRIST_RIGHT_SERVO;
 
     private final CRServo SPIN_LEFT_SERVO;
     private final CRServo SPIN_RIGHT_SERVO;
@@ -56,7 +57,8 @@ public class Intake {
         SLIDE_MOTOR.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
         SLIDE_MOTOR.setInverted(true);
 
-        WRIST_SERVO = hardwareMap.get(Servo.class, "intakeWrist");
+        WRIST_LEFT_SERVO = hardwareMap.get(Servo.class, "intakeWristLeft");
+        WRIST_RIGHT_SERVO = hardwareMap.get(Servo.class, "intakeWristRight");
 
         SPIN_LEFT_SERVO = new CRServo(hardwareMap, "intakeSpinLeft");
         SPIN_LEFT_SERVO.setRunMode(CRServo.RunMode.RawPower);
@@ -117,7 +119,8 @@ public class Intake {
     }
 
     public void setWrist (double p) {
-        WRIST_SERVO.setPosition(p);
+        WRIST_LEFT_SERVO.setPosition(p);
+        WRIST_RIGHT_SERVO.setPosition(1 - p);
     }
 
     public double getSlidePosition() {

@@ -1,12 +1,7 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.subsystems;
 
-import android.widget.GridLayout;
-
-import com.acmerobotics.dashboard.config.Config;
 import com.arcrobotics.ftclib.hardware.motors.CRServo;
-import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.Servo;
 
 // servo that controls a claw that has an in position and out position
 public class SpecimenTake {
