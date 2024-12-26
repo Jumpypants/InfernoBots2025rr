@@ -12,8 +12,8 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.arcrobotics.ftclib.drivebase.MecanumDrive;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.subsystems.Intake;
-import org.firstinspires.ftc.teamcode.subsystems.Outtake;
+import org.firstinspires.ftc.teamcode.subsystems.IntakeV0;
+import org.firstinspires.ftc.teamcode.subsystems.OuttakeV0;
 import org.firstinspires.ftc.teamcode.vision.SampleFinder;
 
 @TeleOp(name = "--DanielOpMode")
@@ -34,14 +34,12 @@ public class DanielOpModeV0 extends LinearOpMode {
                 RevHubOrientationOnRobot.LogoFacingDirection.RIGHT, RevHubOrientationOnRobot.UsbFacingDirection.UP)).get();
         imu.resetYaw();
 
-        Outtake outtake = new Outtake(hardwareMap);
-        Intake intake = new Intake(hardwareMap);
+        OuttakeV0 outtake = new OuttakeV0(hardwareMap);
+        IntakeV0 intake = new IntakeV0(hardwareMap);
 
         FtcDashboard dashboard = FtcDashboard.getInstance();
         Telemetry dashboardTelemetry = dashboard.getTelemetry();
-
         TeleOpStateMachineV0 stateMachine = new TeleOpStateMachineV0();
-
 
         while (opModeIsActive()) {
             if (gamepad2.dpad_up) {
@@ -52,15 +50,15 @@ public class DanielOpModeV0 extends LinearOpMode {
             }
 
             if (gamepad2.a) {
-                intake.setWrist(Intake.WRIST_DOWN_POSITION);
+                intake.setWrist(IntakeV0.WRIST_DOWN_POSITION);
             }
 
             if (gamepad2.b) {
-                intake.setWrist(Intake.WRIST_MID_POSITION);
+                intake.setWrist(IntakeV0.WRIST_MID_POSITION);
             }
 
             if (gamepad2.y) {
-                intake.setWrist(Intake.WRIST_UP_POSITION);
+                intake.setWrist(IntakeV0.WRIST_UP_POSITION);
             }
 
             if (gamepad1.y) {

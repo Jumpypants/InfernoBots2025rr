@@ -15,8 +15,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.subsystems.Intake;
-import org.firstinspires.ftc.teamcode.subsystems.Outtake;
+import org.firstinspires.ftc.teamcode.subsystems.IntakeV0;
+import org.firstinspires.ftc.teamcode.subsystems.OuttakeV0;
 import org.firstinspires.ftc.teamcode.vision.Sample;
 import org.firstinspires.ftc.teamcode.vision.SampleFinder;
 
@@ -28,8 +28,8 @@ public class ThreeSampleAuton extends LinearOpMode {
     FtcDashboard dashboard = FtcDashboard.getInstance();
     Telemetry dashboardTelemetry = dashboard.getTelemetry();
 
-    private Intake intake;
-    private Outtake outtake;
+    private IntakeV0 intake;
+    private OuttakeV0 outtake;
 
     private SampleFinder sampleFinder;
 
@@ -47,7 +47,7 @@ public class ThreeSampleAuton extends LinearOpMode {
                 elapsedTime.reset();
                 initialized = true;
             }
-            intake.setWrist(Intake.WRIST_MID_POSITION);
+            intake.setWrist(IntakeV0.WRIST_MID_POSITION);
             return elapsedTime.seconds() < 0.3;
         }
     }
@@ -88,7 +88,7 @@ public class ThreeSampleAuton extends LinearOpMode {
                 elapsedTime.reset();
                 initialized = true;
             }
-            intake.setWrist(Intake.WRIST_UP_POSITION);
+            intake.setWrist(IntakeV0.WRIST_UP_POSITION);
             return elapsedTime.seconds() < 1.1;
         }
 
@@ -104,13 +104,13 @@ public class ThreeSampleAuton extends LinearOpMode {
             if (!initialized) {
                 elapsedTime.reset();
                 initialized = true;
-                intake.setSpin(Intake.SPIN_IN);
+                intake.setSpin(IntakeV0.SPIN_IN);
             }
 
             if (!intake.stepSlideTo(13.5, 0.55, dashboardTelemetry) || elapsedTime.seconds() < 1.4) {
                 return true;
             }
-            intake.setSpin(Intake.SPIN_STOP);
+            intake.setSpin(IntakeV0.SPIN_STOP);
             return false;
         }
     }
@@ -140,7 +140,7 @@ public class ThreeSampleAuton extends LinearOpMode {
         public boolean run(@NonNull TelemetryPacket telemetryPacket) {
             dashboardTelemetry.addData("Action", "RetractIntake");
             dashboardTelemetry.update();
-            return !intake.stepSlideTo(Intake.SLIDE_IN_POSITION, dashboardTelemetry);
+            return !intake.stepSlideTo(IntakeV0.SLIDE_IN_POSITION, dashboardTelemetry);
         }
     }
 
@@ -156,7 +156,7 @@ public class ThreeSampleAuton extends LinearOpMode {
                 elapsedTime.reset();
                 initialized = true;
             }
-            intake.setWrist(Intake.WRIST_DOWN_POSITION);
+            intake.setWrist(IntakeV0.WRIST_DOWN_POSITION);
             return elapsedTime.seconds() <= 1.2;
         }
     }
@@ -173,7 +173,7 @@ public class ThreeSampleAuton extends LinearOpMode {
                 elapsedTime.reset();
                 initialized = true;
             }
-            outtake.setSpin(Outtake.SPIN_IN_POSITION);
+            outtake.setSpin(OuttakeV0.SPIN_IN_POSITION);
             return elapsedTime.seconds() <= 1.2;
         }
     }
@@ -188,12 +188,12 @@ public class ThreeSampleAuton extends LinearOpMode {
             dashboardTelemetry.update();
             if (!initialized) {
                 elapsedTime.reset();
-                intake.setSpin(Intake.SPIN_OUT);
+                intake.setSpin(IntakeV0.SPIN_OUT);
                 initialized = true;
             }
 
-            if (elapsedTime.seconds() > Intake.TRANSFER_SPIN_TIME) {
-                intake.setSpin(Intake.SPIN_STOP);
+            if (elapsedTime.seconds() > IntakeV0.TRANSFER_SPIN_TIME) {
+                intake.setSpin(IntakeV0.SPIN_STOP);
                 return false;
             }
             return true;
@@ -205,7 +205,7 @@ public class ThreeSampleAuton extends LinearOpMode {
         public boolean run(@NonNull TelemetryPacket telemetryPacket) {
             dashboardTelemetry.addData("Action", "ExtendToOuttake");
             dashboardTelemetry.update();
-            return !outtake.stepSlideTo(Outtake.HIGH_BASKET_POSITION, telemetryPacket);
+            return !outtake.stepSlideTo(OuttakeV0.HIGH_BASKET_POSITION, telemetryPacket);
         }
     }
 
@@ -214,7 +214,7 @@ public class ThreeSampleAuton extends LinearOpMode {
         public boolean run(@NonNull TelemetryPacket telemetryPacket) {
             dashboardTelemetry.addData("Action", "RetractOuttake");
             dashboardTelemetry.update();
-            if (outtake.stepSlideTo(Outtake.DOWN_POSITION, telemetryPacket)) {
+            if (outtake.stepSlideTo(OuttakeV0.DOWN_POSITION, telemetryPacket)) {
                 outtake.setSlidePower(0);
                 outtake.getSlideMotor().resetEncoder();
                 return false;
@@ -235,15 +235,15 @@ public class ThreeSampleAuton extends LinearOpMode {
                 elapsedTime.reset();
                 initialized = true;
             }
-            outtake.setSpin(Outtake.SPIN_OUT_POSITION);
-            return elapsedTime.seconds() <= Outtake.TIME_TO_SPIN;
+            outtake.setSpin(OuttakeV0.SPIN_OUT_POSITION);
+            return elapsedTime.seconds() <= OuttakeV0.TIME_TO_SPIN;
         }
     }
 
     @Override
     public void runOpMode() {
-        intake = new Intake(hardwareMap);
-        outtake = new Outtake(hardwareMap);
+        intake = new IntakeV0(hardwareMap);
+        outtake = new OuttakeV0(hardwareMap);
         //sampleFinder = new SampleFinder(hardwareMap, dashboardTelemetry, new double[]{0, 0, 0});
 
 
@@ -279,8 +279,8 @@ public class ThreeSampleAuton extends LinearOpMode {
 
         waitForStart();
 
-        intake.setWrist(Intake.WRIST_UP_POSITION);
-        outtake.setSpin(Outtake.SPIN_IN_POSITION);
+        intake.setWrist(IntakeV0.WRIST_UP_POSITION);
+        outtake.setSpin(OuttakeV0.SPIN_IN_POSITION);
 
         Actions.runBlocking(new SequentialAction(
                 goOuttake(goToBasket),
