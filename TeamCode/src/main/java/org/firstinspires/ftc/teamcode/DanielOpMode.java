@@ -12,16 +12,19 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.IMU;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.murphy.MurphyState;
+import org.firstinspires.ftc.teamcode.murphy.MurphyStateMachine;
+import org.firstinspires.ftc.teamcode.robotStates.NoneState;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
+import org.firstinspires.ftc.teamcode.subsystems.IntakeV0;
 import org.firstinspires.ftc.teamcode.subsystems.Outtake;
+import org.firstinspires.ftc.teamcode.subsystems.OuttakeV0;
 import org.firstinspires.ftc.teamcode.vision.SampleFinder;
 
 @TeleOp(name = "--DanielOpMode")
 
 @Config
-public class DanielOpModeV1 extends LinearOpMode {
-    public static double targetPos = 0;
-
+public class DanielOpMode extends LinearOpMode {
     @Override
     public void runOpMode() {
         waitForStart();
@@ -34,11 +37,13 @@ public class DanielOpModeV1 extends LinearOpMode {
                 RevHubOrientationOnRobot.LogoFacingDirection.RIGHT, RevHubOrientationOnRobot.UsbFacingDirection.UP)).get();
         imu.resetYaw();
 
-        Outtake outtake = new Outtake(hardwareMap);
-        Intake intake = new Intake(hardwareMap);
-
         FtcDashboard dashboard = FtcDashboard.getInstance();
         Telemetry dashboardTelemetry = dashboard.getTelemetry();
+
+        Intake intake = new Intake(hardwareMap);
+        Outtake outtake = new Outtake(hardwareMap);
+
+        MurphyStateMachine stateMachine = new MurphyStateMachine(new NoneState(gamepad2, intake, outtake));
 
         while (opModeIsActive()) {
             if (gamepad2.dpad_up) {
@@ -48,16 +53,21 @@ public class DanielOpModeV1 extends LinearOpMode {
                 outtake.getSlideMotor().resetEncoder();
             }
 
-            if (gamepad1.y) {
-                imu.resetYaw();
-            }
-
-            stepDriveBase(driveBase, imu);
-
             if (gamepad2.dpad_right) {
                 outtake.getSlideMotor().set(-0.5);
                 outtake.getSlideMotor().resetEncoder();
             }
+
+            if (gamepad1.y) {
+                imu.resetYaw();
+            }
+
+            stateMachine.step(dashboardTelemetry);
+
+            intake.stepSlide();
+            outtake.stepSlide();
+
+            stepDriveBase(driveBase, imu);
 
             dashboardTelemetry.update();
         }

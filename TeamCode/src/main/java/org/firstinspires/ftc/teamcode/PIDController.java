@@ -18,6 +18,10 @@ public class PIDController {
         this.setpoint = setpoint;
     }
 
+    public double getSetpoint() {
+        return setpoint;
+    }
+
     public double calculate(double current) {
         double error = setpoint - current;
         integral += error;

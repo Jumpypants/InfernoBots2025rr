@@ -9,8 +9,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.subsystems.DriveBase;
-import org.firstinspires.ftc.teamcode.subsystems.Intake;
-import org.firstinspires.ftc.teamcode.subsystems.Outtake;
+import org.firstinspires.ftc.teamcode.subsystems.IntakeV0;
+import org.firstinspires.ftc.teamcode.subsystems.OuttakeV0;
 import org.firstinspires.ftc.teamcode.vision.Sample;
 import org.firstinspires.ftc.teamcode.vision.SampleFinder;
 
@@ -47,8 +47,8 @@ public class TeleOpStateMachineV0 {
     private final ElapsedTime elapsedTime = new ElapsedTime();
 
     public void step(
-            Intake intake,
-            Outtake outtake,
+            IntakeV0 intake,
+            OuttakeV0 outtake,
             Telemetry telemetry,
             IMU imu,
             Gamepad gamepad1,
@@ -143,8 +143,8 @@ public class TeleOpStateMachineV0 {
         }
     }
 
-    private void awaitIntakeInput(Gamepad gamepad, Intake intake) {
-        intake.setWrist(Intake.WRIST_UP_POSITION);
+    private void awaitIntakeInput(Gamepad gamepad, IntakeV0 intake) {
+        intake.setWrist(IntakeV0.WRIST_UP_POSITION);
         if (gamepad.left_trigger > 0) {
             state = State.ExtendToSample;
         }
@@ -154,12 +154,12 @@ public class TeleOpStateMachineV0 {
         }
     }
 
-    private void extendToSample(Intake intake, Outtake outtake, Gamepad gamepad, Telemetry telemetry) {
-        outtake.setSpin(Outtake.SPIN_IN_POSITION);
+    private void extendToSample(IntakeV0 intake, OuttakeV0 outtake, Gamepad gamepad, Telemetry telemetry) {
+        outtake.setSpin(OuttakeV0.SPIN_IN_POSITION);
         //intake.setWrist(Intake.WRIST_MID_POSITION);
-        if (intake.stepSlideTo(Intake.INITIAL_EXTENSION_DISTANCE, telemetry)) {
+        if (intake.stepSlideTo(IntakeV0.INITIAL_EXTENSION_DISTANCE, telemetry)) {
             state = State.CollectSample;
-            intake.setWrist(Intake.WRIST_MID_POSITION);
+            intake.setWrist(IntakeV0.WRIST_MID_POSITION);
             elapsedTime.reset();
         }
 
@@ -168,28 +168,28 @@ public class TeleOpStateMachineV0 {
         }
     }
 
-    private void collectSample(Intake intake, Telemetry telemetry, IMU imu, Gamepad gamepad) {
+    private void collectSample(IntakeV0 intake, Telemetry telemetry, IMU imu, Gamepad gamepad) {
         intake.stepSlideTo(intake.getSlidePosition() - gamepad.left_stick_y * 2, telemetry);
 
         if (gamepad.right_bumper) {
-            intake.setSpin(Intake.SPIN_IN);
+            intake.setSpin(IntakeV0.SPIN_IN);
         }
         if (gamepad.left_bumper) {
-            intake.setSpin(Intake.SPIN_OUT);
+            intake.setSpin(IntakeV0.SPIN_OUT);
         }
 
         if (gamepad.right_stick_y < -0.2 || gamepad.a) {
-            intake.setWrist(Intake.WRIST_DOWN_POSITION);
-            intake.setSpin(Intake.SPIN_IN);
+            intake.setWrist(IntakeV0.WRIST_DOWN_POSITION);
+            intake.setSpin(IntakeV0.SPIN_IN);
         }
         if (gamepad.right_stick_y > 0.2 || gamepad.b) {
-            intake.setWrist(Intake.WRIST_MID_POSITION);
+            intake.setWrist(IntakeV0.WRIST_MID_POSITION);
         }
 
         if (gamepad.right_trigger > 0.1 || intake.getColor(telemetry) == Color.YELLOW) {
             state = State.RetractIntakeSlideAndWrist;
             elapsedTime.reset();
-            intake.setSpin(Intake.SPIN_STOP);
+            intake.setSpin(IntakeV0.SPIN_STOP);
         }
 
         if (gamepad.x) {
@@ -197,9 +197,9 @@ public class TeleOpStateMachineV0 {
         }
     }
 
-    private void retractIntakeSlideAndWrist(Intake intake, Gamepad gamepad, Telemetry telemetry) {
-        intake.setWrist(Intake.WRIST_UP_POSITION);
-        if (intake.stepSlideTo(Intake.SLIDE_IN_POSITION, telemetry) && elapsedTime.seconds() > 1.2) {
+    private void retractIntakeSlideAndWrist(IntakeV0 intake, Gamepad gamepad, Telemetry telemetry) {
+        intake.setWrist(IntakeV0.WRIST_UP_POSITION);
+        if (intake.stepSlideTo(IntakeV0.SLIDE_IN_POSITION, telemetry) && elapsedTime.seconds() > 1.2) {
             state = State.AwaitTransferInput;
         }
 
@@ -208,18 +208,18 @@ public class TeleOpStateMachineV0 {
         }
     }
 
-    private void awaitTransferInput (Gamepad gamepad2, Outtake outtake, Intake intake, Telemetry telemetry) {
-        intake.setWrist(Intake.WRIST_UP_POSITION);
+    private void awaitTransferInput (Gamepad gamepad2, OuttakeV0 outtake, IntakeV0 intake, Telemetry telemetry) {
+        intake.setWrist(IntakeV0.WRIST_UP_POSITION);
         if (gamepad2.right_trigger > 0) {
             state = State.TransferSampleToOuttake;
             elapsedTime.reset();
-            basketPos = Outtake.HIGH_BASKET_POSITION;
+            basketPos = OuttakeV0.HIGH_BASKET_POSITION;
         }
 
         if (gamepad2.right_bumper)  {
             state = State.TransferSampleToOuttake;
             elapsedTime.reset();
-            basketPos = Outtake.LOW_BASKET_POSITION;
+            basketPos = OuttakeV0.LOW_BASKET_POSITION;
         }
 
         if (gamepad2.left_trigger > 0) {
@@ -227,23 +227,23 @@ public class TeleOpStateMachineV0 {
         }
     }
 
-    private void transferSampleToOuttake(Intake intake, Outtake outtake, Telemetry telemetry) {
-        intake.setSpin(Intake.SPIN_OUT);
-        if (elapsedTime.seconds() > Intake.TRANSFER_SPIN_TIME) {
+    private void transferSampleToOuttake(IntakeV0 intake, OuttakeV0 outtake, Telemetry telemetry) {
+        intake.setSpin(IntakeV0.SPIN_OUT);
+        if (elapsedTime.seconds() > IntakeV0.TRANSFER_SPIN_TIME) {
             elapsedTime.reset();
             state = State.GetWristOutOfWay;
-            intake.setSpin(Intake.SPIN_STOP);
+            intake.setSpin(IntakeV0.SPIN_STOP);
         }
     }
 
-    private void getWristOutOfWay(Intake intake) {
-        intake.setWrist(Intake.WRIST_MID_POSITION);
+    private void getWristOutOfWay(IntakeV0 intake) {
+        intake.setWrist(IntakeV0.WRIST_MID_POSITION);
         if (elapsedTime.seconds() > 0.5) {
             state = State.ExtendOuttakeToBasket;
         }
     }
 
-    private void extendOuttakeToBasket(Outtake outtake, Gamepad gamepad, Telemetry telemetry) {
+    private void extendOuttakeToBasket(OuttakeV0 outtake, Gamepad gamepad, Telemetry telemetry) {
         if (outtake.stepSlideTo(basketPos, telemetry)) {
             state = State.AwaitDumpInput;
         }
@@ -253,7 +253,7 @@ public class TeleOpStateMachineV0 {
         }
 
         telemetry.addData("Outtake pos", outtake.getSlidePosition());
-        telemetry.addData("outtake target", Outtake.HIGH_BASKET_POSITION);
+        telemetry.addData("outtake target", OuttakeV0.HIGH_BASKET_POSITION);
     }
 
     private void awaitDumpInput(Gamepad gamepad) {
@@ -267,9 +267,9 @@ public class TeleOpStateMachineV0 {
         }
     }
 
-    private void dumpSample(Outtake outtake, Gamepad gamepad, Telemetry telemetry) {
-        outtake.setSpin(Outtake.SPIN_OUT_POSITION);
-        if (elapsedTime.seconds() > Outtake.TIME_TO_SPIN) {
+    private void dumpSample(OuttakeV0 outtake, Gamepad gamepad, Telemetry telemetry) {
+        outtake.setSpin(OuttakeV0.SPIN_OUT_POSITION);
+        if (elapsedTime.seconds() > OuttakeV0.TIME_TO_SPIN) {
             state = State.RetractOuttakeSlideAndSpin;
         }
 
@@ -278,9 +278,9 @@ public class TeleOpStateMachineV0 {
         }
     }
 
-    private void retractOuttakeSlideAndSpin(Outtake outtake, Gamepad gamepad, Telemetry telemetry) {
-        outtake.setSpin(Outtake.SPIN_IN_POSITION);
-        if (outtake.stepSlideTo(Outtake.DOWN_POSITION, telemetry)) {
+    private void retractOuttakeSlideAndSpin(OuttakeV0 outtake, Gamepad gamepad, Telemetry telemetry) {
+        outtake.setSpin(OuttakeV0.SPIN_IN_POSITION);
+        if (outtake.stepSlideTo(OuttakeV0.DOWN_POSITION, telemetry)) {
             outtake.getSlideMotor().set(0);
             state = State.AwaitIntakeInput;
         }
@@ -294,24 +294,24 @@ public class TeleOpStateMachineV0 {
         }
     }
 
-    private void retractOuttakeExtendIntake(Outtake outtake, Intake intake, Gamepad gamepad2, Telemetry telemetry) {
-        intake.setWrist(Intake.WRIST_MID_POSITION);
-        if (outtake.stepSlideTo(Outtake.DOWN_POSITION, telemetry)) {
+    private void retractOuttakeExtendIntake(OuttakeV0 outtake, IntakeV0 intake, Gamepad gamepad2, Telemetry telemetry) {
+        intake.setWrist(IntakeV0.WRIST_MID_POSITION);
+        if (outtake.stepSlideTo(OuttakeV0.DOWN_POSITION, telemetry)) {
             state = State.ExtendToSample;
             outtake.getSlideMotor().set(0);
         }
-        if (intake.stepSlideTo(Intake.INITIAL_EXTENSION_DISTANCE, telemetry)) {
+        if (intake.stepSlideTo(IntakeV0.INITIAL_EXTENSION_DISTANCE, telemetry)) {
             intake.getSlideMotor().set(0);
         }
     }
 
-    private void outtakeManualControl(Outtake outtake, Gamepad gamepad, Telemetry telemetry) {
+    private void outtakeManualControl(OuttakeV0 outtake, Gamepad gamepad, Telemetry telemetry) {
         if (gamepad.left_bumper) {
-            outtake.setSpin(Outtake.SPIN_OUT_POSITION);
+            outtake.setSpin(OuttakeV0.SPIN_OUT_POSITION);
         }
 
         if (gamepad.right_bumper) {
-            outtake.setSpin(Outtake.SPIN_IN_POSITION);
+            outtake.setSpin(OuttakeV0.SPIN_IN_POSITION);
         }
 
         if (gamepad.y) {
@@ -325,7 +325,7 @@ public class TeleOpStateMachineV0 {
         }
     }
 
-    private void intakeManualControl(Intake intake, Gamepad gamepad, Telemetry telemetry) {
+    private void intakeManualControl(IntakeV0 intake, Gamepad gamepad, Telemetry telemetry) {
 //        if (gamepad.right_bumper) {
 //            intake.getSpinServo().set(1);
 //        }

@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-import android.graphics.Color;
-
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.arcrobotics.ftclib.hardware.motors.CRServo;
@@ -14,7 +12,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.subsystems.Intake;
+import org.firstinspires.ftc.teamcode.subsystems.IntakeV0;
 
 @TeleOp(name = "--WristTester")
 
@@ -54,15 +52,15 @@ public class WristTester extends LinearOpMode {
 
         while (opModeIsActive()) {
             if (gamepad2.a) {
-                setWrist(Intake.WRIST_DOWN_POSITION);
+                setWrist(IntakeV0.WRIST_DOWN_POSITION);
             }
 
             if (gamepad2.b) {
-                setWrist(Intake.WRIST_MID_POSITION);
+                setWrist(IntakeV0.WRIST_MID_POSITION);
             }
 
             if (gamepad2.y) {
-                setWrist(Intake.WRIST_UP_POSITION);
+                setWrist(IntakeV0.WRIST_UP_POSITION);
             }
 
             if (gamepad2.right_bumper) {

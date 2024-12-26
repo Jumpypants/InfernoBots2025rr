@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
-import android.graphics.Color;
-
 import com.acmerobotics.dashboard.config.Config;
 import com.arcrobotics.ftclib.hardware.motors.CRServo;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
@@ -10,8 +8,8 @@ import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.PIDController;
+import org.firstinspires.ftc.teamcode.murphy.MurphyAction;
 
 @Config
 public class Intake {
@@ -24,7 +22,6 @@ public class Intake {
     public static double SPIN_STOP = 0;
 
     public static double SLIDE_IN_POSITION = 0;
-    public static double TRANSFER_SPIN_TIME = 0.95;
 
     public static double SLIDE_MAX_POSITION = 42;
     public static double SLIDE_MIN_POSITION = 0;
@@ -37,6 +34,8 @@ public class Intake {
     public static double KI = 0.0;
     public static double KD = 0.0;
 
+    private final PIDController pidController = new PIDController(KP / SLIDE_TICKS_PER_INCH, KI, KD);
+
     private final Motor SLIDE_MOTOR;
 
     private final Servo WRIST_LEFT_SERVO;
@@ -47,9 +46,6 @@ public class Intake {
 
     private final ColorSensor COLOR_SENSOR;
     private final DistanceSensor DISTANCE_SENSOR;
-
-
-    private double slidePosition = 0;
 
     public Intake(HardwareMap hardwareMap) {
         SLIDE_MOTOR = new Motor(hardwareMap, "intakeSlide");
@@ -70,47 +66,28 @@ public class Intake {
         DISTANCE_SENSOR = hardwareMap.get(DistanceSensor.class, "colorSensor");
     }
 
-    public boolean stepSlideTo(double position, Telemetry telemetry) {
-        return stepSlideTo(position, 1, telemetry);
+    public void setSlideSetPoint(double setPoint) {
+        if (setPoint > SLIDE_MAX_POSITION) {
+            setPoint = SLIDE_MAX_POSITION;
+        } else if (setPoint < SLIDE_MIN_POSITION) {
+            setPoint = SLIDE_MIN_POSITION;
+        }
+        pidController.setSetpoint(setPoint);
     }
 
-    public boolean stepSlideTo(double position, double powerCoefficient, Telemetry telemetry) {
-        if (position > SLIDE_MAX_POSITION) {
-            position = SLIDE_MAX_POSITION;
-        } else if (position < SLIDE_MIN_POSITION) {
-            position = SLIDE_MIN_POSITION;
-        }
-
-        slidePosition = getSlidePosition();
-
-        if (Math.abs(slidePosition - position) < ALLOWED_ERROR) {
-            SLIDE_MOTOR.set(0);
-            return true;
-        }
-
-        PIDController pidController = new PIDController(KP / SLIDE_TICKS_PER_INCH, KI, KD);
-
-        pidController.setSetpoint(position);
-
+    public void stepSlide(double powerCoefficient) {
+        double slidePosition = getSlidePosition();
         double power = pidController.calculate(slidePosition);
-
         SLIDE_MOTOR.set(power * powerCoefficient);
-
-        return false;
     }
 
-    public int getColor(Telemetry telemetry) {
-        final double SCALE_FACTOR = 255;
+    public void stepSlide() {
+        stepSlide(1);
+    }
 
-        float hsvValues[] = {0F, 0F, 0F};
-
-        Color.RGBToHSV((int) (COLOR_SENSOR.red() * SCALE_FACTOR),
-                (int) (COLOR_SENSOR.green() * SCALE_FACTOR),
-                (int) (COLOR_SENSOR.blue() * SCALE_FACTOR),
-                hsvValues);
-
-        telemetry.addData("color", Color.HSVToColor(hsvValues));
-        return Color.HSVToColor(hsvValues);
+    public boolean isSlideAtSetPoint() {
+        double slidePosition = getSlidePosition();
+        return Math.abs(pidController.getSetpoint() - slidePosition) < ALLOWED_ERROR;
     }
 
     public void setSpin (double p) {
@@ -118,14 +95,21 @@ public class Intake {
         SPIN_RIGHT_SERVO.set(-p);
     }
 
+    public double getSpin() {
+        return SPIN_LEFT_SERVO.get();
+    }
+
     public void setWrist (double p) {
         WRIST_LEFT_SERVO.setPosition(p);
         WRIST_RIGHT_SERVO.setPosition(1 - p);
     }
 
+    public double getWrist() {
+        return WRIST_LEFT_SERVO.getPosition();
+    }
+
     public double getSlidePosition() {
-        slidePosition = (double) (SLIDE_MOTOR.getCurrentPosition()) * SLIDE_TICKS_PER_INCH;
-        return slidePosition;
+        return (double) (SLIDE_MOTOR.getCurrentPosition()) * SLIDE_TICKS_PER_INCH;
     }
 
     public Motor getSlideMotor() {
@@ -134,5 +118,105 @@ public class Intake {
 
     public CRServo getSpinServo() {
         return SPIN_LEFT_SERVO;
+    }
+
+
+    public static class WristUpAction extends MurphyAction {
+        private final double requiredTime;
+
+        public WristUpAction(Intake intake) {
+            super();
+            if (intake.getWrist() == WRIST_DOWN_POSITION) {
+                requiredTime = 0.5;
+            } else if (intake.getWrist() == WRIST_MID_POSITION) {
+                requiredTime = 0.25;
+            } else {
+                requiredTime = 0;
+            }
+            intake.setWrist(WRIST_UP_POSITION);
+        }
+
+        @Override
+        public boolean step() {
+            return ELAPSED_TIME.seconds() < requiredTime;
+        }
+    }
+
+    public static class WristDownAction extends MurphyAction {
+        private final double requiredTime;
+
+        public WristDownAction(Intake intake) {
+            super();
+            if (intake.getWrist() == WRIST_UP_POSITION) {
+                requiredTime = 0.5;
+            } else if (intake.getWrist() == WRIST_MID_POSITION) {
+                requiredTime = 0.25;
+            } else {
+                requiredTime = 0;
+            }
+            intake.setWrist(WRIST_DOWN_POSITION);
+        }
+
+        @Override
+        public boolean step() {
+            return ELAPSED_TIME.seconds() < requiredTime;
+        }
+    }
+
+    public static class WristMidAction extends MurphyAction {
+        private final double requiredTime;
+
+        public WristMidAction(Intake intake) {
+            super();
+            if (intake.getWrist() == WRIST_UP_POSITION || intake.getWrist() == WRIST_DOWN_POSITION) {
+                requiredTime = 0.25;
+            } else {
+                requiredTime = 0;
+            }
+        }
+
+        @Override
+        public boolean step() {
+            return ELAPSED_TIME.seconds() < requiredTime;
+        }
+    }
+
+    public static class MoveSlideAction extends MurphyAction {
+        private final Intake intake;
+
+        public MoveSlideAction(Intake intake, double setPoint) {
+            super();
+            this.intake = intake;
+            intake.setSlideSetPoint(setPoint);
+        }
+
+        @Override
+        public boolean step() {
+            return !intake.isSlideAtSetPoint();
+        }
+    }
+
+    public static class TransferSpinAction extends MurphyAction {
+        public TransferSpinAction(Intake intake) {
+            super();
+            intake.setSpin(SPIN_IN);
+        }
+
+        @Override
+        public boolean step() {
+            return ELAPSED_TIME.seconds() < 1;
+        }
+    }
+
+    public static class ClearWristAction extends MurphyAction {
+        public ClearWristAction(Intake intake) {
+            super();
+            intake.setWrist(WRIST_MID_POSITION);
+        }
+
+        @Override
+        public boolean step() {
+            return ELAPSED_TIME.seconds() < 0.15;
+        }
     }
 }
