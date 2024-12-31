@@ -12,13 +12,11 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.IMU;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.murphy.MurphyState;
 import org.firstinspires.ftc.teamcode.murphy.MurphyStateMachine;
-import org.firstinspires.ftc.teamcode.robotStates.NoneState;
+import org.firstinspires.ftc.teamcode.robotStates.IntakingState;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
-import org.firstinspires.ftc.teamcode.subsystems.IntakeV0;
 import org.firstinspires.ftc.teamcode.subsystems.Outtake;
-import org.firstinspires.ftc.teamcode.subsystems.OuttakeV0;
+import org.firstinspires.ftc.teamcode.subsystems.Robot;
 import org.firstinspires.ftc.teamcode.vision.SampleFinder;
 
 @TeleOp(name = "--DanielOpMode")
@@ -34,7 +32,9 @@ public class DanielOpMode extends LinearOpMode {
         SampleFinder sampleFinder = new SampleFinder(hardwareMap, telemetry, new double[]{0, 0, 0});
 
         IMU imu = new LazyImu(hardwareMap, "imu", new RevHubOrientationOnRobot(
-                RevHubOrientationOnRobot.LogoFacingDirection.RIGHT, RevHubOrientationOnRobot.UsbFacingDirection.UP)).get();
+                RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
+                RevHubOrientationOnRobot.UsbFacingDirection.UP)
+        ).get();
         imu.resetYaw();
 
         FtcDashboard dashboard = FtcDashboard.getInstance();
@@ -43,7 +43,16 @@ public class DanielOpMode extends LinearOpMode {
         Intake intake = new Intake(hardwareMap);
         Outtake outtake = new Outtake(hardwareMap);
 
-        MurphyStateMachine stateMachine = new MurphyStateMachine(new NoneState(gamepad2, intake, outtake));
+        Robot robot = new Robot(
+                gamepad1,
+                gamepad2,
+                intake,
+                outtake,
+                driveBase,
+                imu
+        );
+
+        MurphyStateMachine stateMachine = new MurphyStateMachine(new IntakingState(robot));
 
         while (opModeIsActive()) {
             if (gamepad2.dpad_up) {

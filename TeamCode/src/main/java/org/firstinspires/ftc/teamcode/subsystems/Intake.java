@@ -5,7 +5,9 @@ import com.arcrobotics.ftclib.hardware.motors.CRServo;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.PIDController;
@@ -118,6 +120,15 @@ public class Intake {
 
     public CRServo getSpinServo() {
         return SPIN_LEFT_SERVO;
+    }
+
+    public void driveFieldCentric(double x, double y, double heading) {
+        double cosHeading = Math.cos(Math.toRadians(heading));
+        double sinHeading = Math.sin(Math.toRadians(heading));
+
+        double power = x * sinHeading + y * cosHeading;
+
+        setSlideSetPoint(getSlidePosition() - power * 0.75);
     }
 
 

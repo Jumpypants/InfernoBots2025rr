@@ -7,21 +7,19 @@ import org.firstinspires.ftc.teamcode.murphy.MurphyParallelAction;
 import org.firstinspires.ftc.teamcode.murphy.MurphySequentialAction;
 import org.firstinspires.ftc.teamcode.murphy.MurphyState;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
-import org.firstinspires.ftc.teamcode.subsystems.Outtake;
+import org.firstinspires.ftc.teamcode.subsystems.Robot;
 
 public class TransferringState implements MurphyState {
-    private final Gamepad gamepad2;
-    private final Intake intake;
-    private final Outtake outtake;
+    private final Robot robot;
 
     private final double targetPosition;
 
     private final MurphyAction action;
 
-    public TransferringState(Gamepad gamepad2, Intake intake, Outtake outtake, double targetPosition) {
-        this.gamepad2 = gamepad2;
-        this.intake = intake;
-        this.outtake = outtake;
+    public TransferringState(Robot robot, double targetPosition) {
+        this.robot = robot;
+
+        Intake intake = robot.intake;
         this.targetPosition = targetPosition;
 
         action = new MurphySequentialAction(
@@ -35,7 +33,9 @@ public class TransferringState implements MurphyState {
 
     @Override
     public MurphyState step() {
-        return !action.step() ? new OuttakingState(gamepad2, intake, outtake, targetPosition) : this;
+        Gamepad gamepad2 = robot.gamepad2;
+        if (Math.abs(gamepad2.left_stick_y) + Math.abs(gamepad2.left_stick_x) > 0.1) return new IntakingState(robot);
+        return !action.step() ? new OuttakingState(robot, targetPosition) : this;
     }
 
     @Override
