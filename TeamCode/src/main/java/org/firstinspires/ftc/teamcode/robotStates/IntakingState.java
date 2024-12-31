@@ -1,28 +1,31 @@
 package org.firstinspires.ftc.teamcode.robotStates;
 
+import com.arcrobotics.ftclib.drivebase.MecanumDrive;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.hardware.IMU;
 
 import org.firstinspires.ftc.teamcode.murphy.MurphyAction;
 import org.firstinspires.ftc.teamcode.murphy.MurphyState;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Outtake;
+import org.firstinspires.ftc.teamcode.subsystems.Robot;
 
 public class IntakingState implements MurphyState {
-    private final Gamepad gamepad2;
-    private final Intake intake;
-    private final Outtake outtake;
+    private final Robot robot;
 
     private MurphyAction wristMoveAction = null;
 
-    public IntakingState(Gamepad gamepad2, Intake intake, Outtake outtake) {
-        this.gamepad2 = gamepad2;
-        this.intake = intake;
-        this.outtake = outtake;
+    public IntakingState(Robot robot) {
+        this.robot = robot;
     }
 
     @Override
     public MurphyState step() {
-        intake.setSlideSetPoint(intake.getSlidePosition() - gamepad2.left_stick_y * 0.75);
+        Intake intake = robot.intake;
+        Gamepad gamepad2 = robot.gamepad2;
+        IMU imu = robot.imu;
+
+        intake.driveFieldCentric(gamepad2.left_stick_x, gamepad2.right_stick_y, imu.getRobotYawPitchRollAngles().getYaw());
 
         if (wristMoveAction != null) {
             if (wristMoveAction.step()) {
@@ -48,12 +51,12 @@ public class IntakingState implements MurphyState {
 
         if (gamepad2.right_trigger > 0.1) {
             intake.setSpin(Intake.SPIN_STOP);
-            return new TransferringState(gamepad2, intake, outtake, Outtake.HIGH_BASKET_POSITION);
+            return new TransferringState(robot, Outtake.HIGH_BASKET_POSITION);
         }
 
         if (gamepad2.right_bumper) {
             intake.setSpin(Intake.SPIN_STOP);
-            return new TransferringState(gamepad2, intake, outtake, Outtake.LOW_BASKET_POSITION);
+            return new TransferringState(robot, Outtake.LOW_BASKET_POSITION);
         }
 
         return this;
