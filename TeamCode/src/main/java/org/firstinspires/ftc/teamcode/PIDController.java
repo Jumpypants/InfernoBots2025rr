@@ -14,6 +14,12 @@ public class PIDController {
         this.integral = 0;
     }
 
+    public void setPID (double kP, double kI, double kD) {
+        this.kP = kP;
+        this.kI = kI;
+        this.kD = kD;
+    }
+
     public void setSetpoint(double setpoint) {
         this.setpoint = setpoint;
     }

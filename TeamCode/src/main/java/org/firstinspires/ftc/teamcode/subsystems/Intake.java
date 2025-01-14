@@ -5,19 +5,23 @@ import com.arcrobotics.ftclib.hardware.motors.CRServo;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
-import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.PIDController;
 import org.firstinspires.ftc.teamcode.murphy.MurphyAction;
 
 @Config
 public class Intake {
-    public static double WRIST_DOWN_POSITION = 0.195;
-    public static double WRIST_MID_POSITION = 0.51;
-    public static double WRIST_UP_POSITION = 0.81;
+    public static double SAMPLE_DISTANCE = 1.5;
+
+    public static double WRIST_DOWN_POSITION = 0.235;
+    public static double WRIST_MID_POSITION = 0.4;
+    public static double WRIST_UP_POSITION = 0.79;
+
+    public static double WRIST_EXTEND_INCREASE = 0.02;
 
     public static double SPIN_IN = -1;
     public static double SPIN_OUT = 1;
@@ -32,9 +36,10 @@ public class Intake {
     public static double SLIDE_TICKS_PER_INCH = 0.0454545;
     public static double ALLOWED_ERROR = 1;
 
-    public static double KP = 0.028;
+
+    public static double KP = 0.015;
     public static double KI = 0.0;
-    public static double KD = 0.0;
+    public static double KD = 0.01;
 
     private final PIDController pidController = new PIDController(KP / SLIDE_TICKS_PER_INCH, KI, KD);
 
@@ -77,14 +82,26 @@ public class Intake {
         pidController.setSetpoint(setPoint);
     }
 
-    public void stepSlide(double powerCoefficient) {
+    public void stepSlide(double powerCoefficient, Telemetry telemetry) {
         double slidePosition = getSlidePosition();
         double power = pidController.calculate(slidePosition);
         SLIDE_MOTOR.set(power * powerCoefficient);
+
+
+        if (getSlidePosition() > 22 && getWrist() == WRIST_DOWN_POSITION) {
+            setWrist(WRIST_DOWN_POSITION + WRIST_EXTEND_INCREASE);
+        } else if (getSlidePosition() < 22 && getWrist() == WRIST_DOWN_POSITION + WRIST_EXTEND_INCREASE) {
+            setWrist(WRIST_DOWN_POSITION);
+        }
+
+        telemetry.addData("Red", COLOR_SENSOR.red());
+        telemetry.addData("Green", COLOR_SENSOR.green());
+        telemetry.addData("Blue", COLOR_SENSOR.blue());
+        telemetry.addData("Distance", DISTANCE_SENSOR.getDistance(DistanceUnit.INCH));
     }
 
-    public void stepSlide() {
-        stepSlide(1);
+    public void stepSlide(Telemetry telemetry) {
+        stepSlide(1, telemetry);
     }
 
     public boolean isSlideAtSetPoint() {
@@ -118,116 +135,123 @@ public class Intake {
         return SLIDE_MOTOR;
     }
 
-    public CRServo getSpinServo() {
-        return SPIN_LEFT_SERVO;
-    }
+    public double getSlideSetPoint() {return pidController.getSetpoint();}
 
-    public void driveFieldCentric(double x, double y, double heading) {
+    public void driveSlide(double x, double y, double heading, boolean slowMode) {
         double cosHeading = Math.cos(Math.toRadians(heading));
         double sinHeading = Math.sin(Math.toRadians(heading));
 
         double power = x * sinHeading + y * cosHeading;
 
-        setSlideSetPoint(getSlidePosition() - power * 0.75);
+        pidController.setSetpoint(getSlidePosition() - y * (slowMode ? 2 : 8));
+    }
+
+    public boolean hasYellowSample() {
+        return COLOR_SENSOR.red() >= 240 && COLOR_SENSOR.green() >= 294 && COLOR_SENSOR.blue() <= 300;
+    }
+
+    public boolean hasBlueSample() {
+        return COLOR_SENSOR.red() <= 110 && COLOR_SENSOR.green() <= 220 && COLOR_SENSOR.blue() >= 130;
+    }
+
+    public boolean hasRedSample() {
+        return COLOR_SENSOR.red() >= 150 && COLOR_SENSOR.green() <= 293 && COLOR_SENSOR.blue() <= 120;
+    }
+
+    public boolean hasSampleOfCorrectColor(Robot.Alliance alliance) {
+        if (DISTANCE_SENSOR.getDistance(DistanceUnit.INCH) > SAMPLE_DISTANCE) return false;
+        if (hasYellowSample()) return true;
+        if (alliance == Robot.Alliance.RED) {
+            return hasRedSample();
+        } else {
+            return hasBlueSample();
+        }
+
+    }
+
+    public boolean hasSample() {
+        return DISTANCE_SENSOR.getDistance(DistanceUnit.INCH) <= SAMPLE_DISTANCE;
     }
 
 
-    public static class WristUpAction extends MurphyAction {
+    public static class WristAction extends MurphyAction {
         private final double requiredTime;
+        private final Intake intake;
+        private final double wristPosition;
 
-        public WristUpAction(Intake intake) {
-            super();
-            if (intake.getWrist() == WRIST_DOWN_POSITION) {
-                requiredTime = 0.5;
-            } else if (intake.getWrist() == WRIST_MID_POSITION) {
-                requiredTime = 0.25;
-            } else {
-                requiredTime = 0;
-            }
-            intake.setWrist(WRIST_UP_POSITION);
+        public WristAction(Intake intake, double wristPosition) {
+            requiredTime = Math.abs(wristPosition - intake.getWrist()) * 1.5;
+            this.intake = intake;
+            this.wristPosition = wristPosition;
         }
 
         @Override
-        public boolean step() {
-            return ELAPSED_TIME.seconds() < requiredTime;
-        }
-    }
-
-    public static class WristDownAction extends MurphyAction {
-        private final double requiredTime;
-
-        public WristDownAction(Intake intake) {
-            super();
-            if (intake.getWrist() == WRIST_UP_POSITION) {
-                requiredTime = 0.5;
-            } else if (intake.getWrist() == WRIST_MID_POSITION) {
-                requiredTime = 0.25;
-            } else {
-                requiredTime = 0;
-            }
-            intake.setWrist(WRIST_DOWN_POSITION);
+        protected void initialize(Telemetry telemetry) {
+            intake.setWrist(wristPosition);
         }
 
         @Override
-        public boolean step() {
-            return ELAPSED_TIME.seconds() < requiredTime;
-        }
-    }
-
-    public static class WristMidAction extends MurphyAction {
-        private final double requiredTime;
-
-        public WristMidAction(Intake intake) {
-            super();
-            if (intake.getWrist() == WRIST_UP_POSITION || intake.getWrist() == WRIST_DOWN_POSITION) {
-                requiredTime = 0.25;
-            } else {
-                requiredTime = 0;
-            }
-        }
-
-        @Override
-        public boolean step() {
+        protected boolean run(Telemetry telemetry) {
             return ELAPSED_TIME.seconds() < requiredTime;
         }
     }
 
     public static class MoveSlideAction extends MurphyAction {
         private final Intake intake;
+        private final double setPoint;
 
         public MoveSlideAction(Intake intake, double setPoint) {
-            super();
             this.intake = intake;
-            intake.setSlideSetPoint(setPoint);
+            this.setPoint = setPoint;
         }
 
         @Override
-        public boolean step() {
+        protected void initialize(Telemetry telemetry) {
+            intake.setSlideSetPoint(setPoint);}
+
+        @Override
+        protected boolean run(Telemetry telemetry) {
             return !intake.isSlideAtSetPoint();
         }
     }
 
     public static class TransferSpinAction extends MurphyAction {
+        private final Intake intake;
+
         public TransferSpinAction(Intake intake) {
-            super();
-            intake.setSpin(SPIN_IN);
+            this.intake = intake;
         }
 
         @Override
-        public boolean step() {
-            return ELAPSED_TIME.seconds() < 1;
+        protected void initialize(Telemetry telemetry) {
+            intake.setSpin(SPIN_OUT);
+        }
+
+        @Override
+        protected boolean run(Telemetry telemetry) {
+            if (ELAPSED_TIME.seconds() > 0.45) {
+                intake.setSpin(SPIN_STOP);
+                return false;
+            }
+            return true;
         }
     }
 
     public static class ClearWristAction extends MurphyAction {
+        private final Intake intake;
+
         public ClearWristAction(Intake intake) {
-            super();
+            this.intake = intake;
+        }
+
+        @Override
+        protected void initialize(Telemetry telemetry) {
             intake.setWrist(WRIST_MID_POSITION);
         }
 
         @Override
-        public boolean step() {
-            return ELAPSED_TIME.seconds() < 0.15;
+        protected boolean run(Telemetry telemetry) {
+            return ELAPSED_TIME.seconds() < 0.4;
         }
     }
 }

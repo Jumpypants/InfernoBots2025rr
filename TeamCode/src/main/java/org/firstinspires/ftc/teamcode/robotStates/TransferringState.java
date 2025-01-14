@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.robotStates;
 
 import com.qualcomm.robotcore.hardware.Gamepad;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.murphy.MurphyAction;
 import org.firstinspires.ftc.teamcode.murphy.MurphyParallelAction;
 import org.firstinspires.ftc.teamcode.murphy.MurphySequentialAction;
@@ -24,7 +25,7 @@ public class TransferringState implements MurphyState {
 
         action = new MurphySequentialAction(
                 new MurphyParallelAction( false,
-                        new Intake.WristUpAction(intake),
+                        new Intake.WristAction(intake, Intake.WRIST_UP_POSITION),
                         new Intake.MoveSlideAction(intake, Intake.SLIDE_IN_POSITION)
                 ),
                 new Intake.TransferSpinAction(intake)
@@ -35,7 +36,7 @@ public class TransferringState implements MurphyState {
     public MurphyState step() {
         Gamepad gamepad2 = robot.gamepad2;
         if (Math.abs(gamepad2.left_stick_y) + Math.abs(gamepad2.left_stick_x) > 0.1) return new IntakingState(robot);
-        return !action.step() ? new OuttakingState(robot, targetPosition) : this;
+        return !action.step(robot.telemetry) ? new OuttakingState(robot, targetPosition) : this;
     }
 
     @Override
