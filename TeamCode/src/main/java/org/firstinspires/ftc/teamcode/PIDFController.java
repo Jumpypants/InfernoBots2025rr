@@ -41,7 +41,7 @@ public class PIDFController {
         double derivative = kD * (error - previousError) / deltaTime;
 
         // Feedforward term (typically constant)
-        double feedforward = kF * setpoint;
+        double feedforward = kF;
 
         // Update previous error and time
         previousError = error;
