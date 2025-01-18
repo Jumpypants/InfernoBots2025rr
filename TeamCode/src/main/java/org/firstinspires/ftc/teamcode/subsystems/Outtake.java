@@ -70,7 +70,16 @@ public class Outtake {
     }
 
     public void stepSlide(Telemetry telemetry) {
-        double slidePosition = getSlidePosition();
+        double slidePosition = getSlidePosition(); //gets current position
+
+        /*
+        targetPosition = motion_profile_position(FILL); //gets the desired next position - determined by motion profiling
+        //use this to calculate the power that the motor needs to be set to
+
+        //MORE ADVANCED
+//        targetAcceleration = motion_profile_acceleration(FILL); //gets the desired acceleration
+//        targetVelocity = motion_profile_velocity(FILL); //gets the desired velocity
+         */
         pidfController.setP(KP);
         pidfController.setI(KI);
         pidfController.setD(KD);
@@ -132,6 +141,7 @@ public class Outtake {
     }
 
     public static class MoveSlideTask extends MurphyTask {
+
         private final Outtake outtake;
         private final double setPoint;
 
