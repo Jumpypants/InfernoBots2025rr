@@ -1,17 +1,22 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import androidx.annotation.NonNull;
+
 import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.acmerobotics.roadrunner.Action;
 import com.arcrobotics.ftclib.hardware.motors.CRServo;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.PIDController;
-import org.firstinspires.ftc.teamcode.murphy.MurphyAction;
+import org.firstinspires.ftc.teamcode.murphy.MurphyTask;
 
 @Config
 public class Intake {
@@ -19,9 +24,7 @@ public class Intake {
 
     public static double WRIST_DOWN_POSITION = 0.235;
     public static double WRIST_MID_POSITION = 0.4;
-    public static double WRIST_UP_POSITION = 0.79;
-
-    public static double WRIST_EXTEND_INCREASE = 0.02;
+    public static double WRIST_UP_POSITION = 0.82;
 
     public static double SPIN_IN = -1;
     public static double SPIN_OUT = 1;
@@ -56,7 +59,6 @@ public class Intake {
 
     public Intake(HardwareMap hardwareMap) {
         SLIDE_MOTOR = new Motor(hardwareMap, "intakeSlide");
-        SLIDE_MOTOR.resetEncoder();
         SLIDE_MOTOR.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
         SLIDE_MOTOR.setInverted(true);
 
@@ -86,18 +88,6 @@ public class Intake {
         double slidePosition = getSlidePosition();
         double power = pidController.calculate(slidePosition);
         SLIDE_MOTOR.set(power * powerCoefficient);
-
-
-        if (getSlidePosition() > 22 && getWrist() == WRIST_DOWN_POSITION) {
-            setWrist(WRIST_DOWN_POSITION + WRIST_EXTEND_INCREASE);
-        } else if (getSlidePosition() < 22 && getWrist() == WRIST_DOWN_POSITION + WRIST_EXTEND_INCREASE) {
-            setWrist(WRIST_DOWN_POSITION);
-        }
-
-        telemetry.addData("Red", COLOR_SENSOR.red());
-        telemetry.addData("Green", COLOR_SENSOR.green());
-        telemetry.addData("Blue", COLOR_SENSOR.blue());
-        telemetry.addData("Distance", DISTANCE_SENSOR.getDistance(DistanceUnit.INCH));
     }
 
     public void stepSlide(Telemetry telemetry) {
@@ -147,19 +137,19 @@ public class Intake {
     }
 
     public boolean hasYellowSample() {
-        return COLOR_SENSOR.red() >= 240 && COLOR_SENSOR.green() >= 294 && COLOR_SENSOR.blue() <= 300;
+        return COLOR_SENSOR.green() > COLOR_SENSOR.red() && COLOR_SENSOR.green() > COLOR_SENSOR.blue();
     }
 
     public boolean hasBlueSample() {
-        return COLOR_SENSOR.red() <= 110 && COLOR_SENSOR.green() <= 220 && COLOR_SENSOR.blue() >= 130;
+        return COLOR_SENSOR.blue() > COLOR_SENSOR.red() && COLOR_SENSOR.blue() > COLOR_SENSOR.green();
     }
 
     public boolean hasRedSample() {
-        return COLOR_SENSOR.red() >= 150 && COLOR_SENSOR.green() <= 293 && COLOR_SENSOR.blue() <= 120;
+        return COLOR_SENSOR.red() > COLOR_SENSOR.green() && COLOR_SENSOR.red() > COLOR_SENSOR.blue();
     }
 
     public boolean hasSampleOfCorrectColor(Robot.Alliance alliance) {
-        if (DISTANCE_SENSOR.getDistance(DistanceUnit.INCH) > SAMPLE_DISTANCE) return false;
+        if (!hasSample()) return false;
         if (hasYellowSample()) return true;
         if (alliance == Robot.Alliance.RED) {
             return hasRedSample();
@@ -174,13 +164,13 @@ public class Intake {
     }
 
 
-    public static class WristAction extends MurphyAction {
+    public static class WristTask extends MurphyTask {
         private final double requiredTime;
         private final Intake intake;
         private final double wristPosition;
 
-        public WristAction(Intake intake, double wristPosition) {
-            requiredTime = Math.abs(wristPosition - intake.getWrist()) * 1.5;
+        public WristTask(Intake intake, double wristPosition) {
+            requiredTime = 1.5;
             this.intake = intake;
             this.wristPosition = wristPosition;
         }
@@ -196,11 +186,36 @@ public class Intake {
         }
     }
 
-    public static class MoveSlideAction extends MurphyAction {
+    public static class WristActionRR implements Action {
+        private final double requiredTime;
+        private final Intake intake;
+        private final double wristPosition;
+        private boolean initialized = false;
+        private final ElapsedTime elapsedTime = new ElapsedTime();
+
+        public WristActionRR(Intake intake, double wristPosition) {
+            requiredTime = 1.5;
+            this.intake = intake;
+            this.wristPosition = wristPosition;
+        }
+
+        @Override
+        public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+            if (!initialized) {
+                initialized = true;
+                elapsedTime.reset();
+                intake.setWrist(wristPosition);
+            }
+
+            return elapsedTime.seconds() < requiredTime;
+        }
+    }
+
+    public static class MoveSlideTask extends MurphyTask {
         private final Intake intake;
         private final double setPoint;
 
-        public MoveSlideAction(Intake intake, double setPoint) {
+        public MoveSlideTask(Intake intake, double setPoint) {
             this.intake = intake;
             this.setPoint = setPoint;
         }
@@ -215,10 +230,26 @@ public class Intake {
         }
     }
 
-    public static class TransferSpinAction extends MurphyAction {
+    public static class MoveSlideActionRR implements Action {
+        private final Intake intake;
+        private final double setPoint;
+
+        public MoveSlideActionRR(Intake intake, double setPoint) {
+            this.intake = intake;
+            this.setPoint = setPoint;
+        }
+
+        @Override
+        public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+            intake.setSlideSetPoint(setPoint);
+            return !intake.isSlideAtSetPoint();
+        }
+    }
+
+    public static class TransferSpinTask extends MurphyTask {
         private final Intake intake;
 
-        public TransferSpinAction(Intake intake) {
+        public TransferSpinTask(Intake intake) {
             this.intake = intake;
         }
 
@@ -229,7 +260,7 @@ public class Intake {
 
         @Override
         protected boolean run(Telemetry telemetry) {
-            if (ELAPSED_TIME.seconds() > 0.45) {
+            if (ELAPSED_TIME.seconds() > 0.4) {
                 intake.setSpin(SPIN_STOP);
                 return false;
             }
@@ -237,10 +268,36 @@ public class Intake {
         }
     }
 
-    public static class ClearWristAction extends MurphyAction {
+    public static class TransferSpinActionRR implements Action {
+        private final Intake intake;
+        private final ElapsedTime elapsedTime = new ElapsedTime();
+        private boolean initialized = false;
+
+        public TransferSpinActionRR(Intake intake) {
+            this.intake = intake;
+        }
+
+        @Override
+        public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+            if (!initialized) {
+                initialized = true;
+                intake.setSpin(Intake.SPIN_OUT);
+                elapsedTime.reset();
+            }
+
+            if (elapsedTime.seconds() > 0.3) {
+                intake.setSpin(SPIN_STOP);
+                return false;
+            }
+
+            return true;
+        }
+    }
+
+    public static class ClearWristTask extends MurphyTask {
         private final Intake intake;
 
-        public ClearWristAction(Intake intake) {
+        public ClearWristTask(Intake intake) {
             this.intake = intake;
         }
 
@@ -252,6 +309,55 @@ public class Intake {
         @Override
         protected boolean run(Telemetry telemetry) {
             return ELAPSED_TIME.seconds() < 0.4;
+        }
+    }
+
+    public static class ClearWristActionRR implements Action {
+        private final Intake intake;
+        private final ElapsedTime elapsedTime = new ElapsedTime();
+        private boolean initialized = false;
+
+        public ClearWristActionRR(Intake intake) {
+            this.intake = intake;
+        }
+
+        @Override
+        public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+            if (!initialized) {
+                initialized = true;
+                elapsedTime.reset();
+                intake.setWrist(WRIST_MID_POSITION);
+            }
+
+            return elapsedTime.seconds() < 0.4;
+        }
+    }
+
+    public static class CollectSampleActionRR implements Action {
+        private final Intake intake;
+        private final ElapsedTime elapsedTime = new ElapsedTime();
+        private boolean initialized = false;
+
+        public CollectSampleActionRR(Intake intake) {
+            this.intake = intake;
+        }
+
+        @Override
+        public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+            if (!initialized) {
+                initialized = true;
+                elapsedTime.reset();
+                intake.setSpin(Intake.SPIN_IN);
+            }
+
+            intake.setSlideSetPoint(intake.getSlidePosition() + 2);
+
+            if (intake.hasYellowSample() && intake.hasSample() || elapsedTime.seconds() > 2) {
+                intake.setSpin(Intake.SPIN_STOP);
+                return false;
+            }
+
+            return true;
         }
     }
 }

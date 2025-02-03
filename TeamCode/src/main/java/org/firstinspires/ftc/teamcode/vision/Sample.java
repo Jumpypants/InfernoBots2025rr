@@ -8,14 +8,13 @@ import org.opencv.core.RotatedRect;
 
 @Config
 public class Sample {
-    // TODO: tune this value
-    public static final double TO_INCHES_RATIO = 0.0393701;
+    public static double TO_INCHES_RATIO = 0.4;
 
-    private double x, y, z;
+    private final double x, y, z;
 
-    private String color;
+    private final String color;
 
-    private RotatedRect rect;
+    private final RotatedRect rect;
 
     public Sample(double x, double y, double z, String color, RotatedRect rect) {
         this.x = toInches(x);
@@ -23,6 +22,10 @@ public class Sample {
         this.z = toInches(z);
         this.color = color;
         this.rect = rect;
+    }
+
+    public static double toInches(double a) {
+        return a * TO_INCHES_RATIO;
     }
 
     @NonNull
@@ -36,10 +39,6 @@ public class Sample {
 
     public double getDistance() {
         return Math.sqrt(x * x + z * z);
-    }
-
-    public double toInches(double a) {
-        return a * TO_INCHES_RATIO;
     }
 
     public double getX() {
@@ -56,5 +55,9 @@ public class Sample {
 
     public String getColor() {
         return color;
+    }
+
+    public RotatedRect getRect() {
+        return rect;
     }
 }

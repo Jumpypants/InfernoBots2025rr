@@ -24,7 +24,7 @@ public class SampleFinder {
         this.cameraPosition = cameraPosition;
 
         // Initialize OpenCV camera
-        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "33DDE480", hardwareMap.appContext.getPackageName());
+        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "96833B40", hardwareMap.appContext.getPackageName());
         camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
 
         // Initialize pipeline
@@ -35,7 +35,7 @@ public class SampleFinder {
         camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
             @Override
             public void onOpened() {
-                camera.startStreaming(640, 480, OpenCvCameraRotation.UPRIGHT);
+                camera.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
             }
 
             @Override
@@ -44,6 +44,7 @@ public class SampleFinder {
                 telemetry.update();
             }
         });
+
         FtcDashboard.getInstance().startCameraStream(camera, 0);
     }
 
