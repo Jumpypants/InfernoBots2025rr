@@ -11,7 +11,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
  * It is recommended to extend 'MurphyAction' within a class that represents a subsystem of the robot.
  * Multiple actions can be stringed together to perform complicated tasks.
  */
-public abstract class MurphyAction {
+public abstract class MurphyTask {
     /**
      * How long it has been since the action was initialized.
      */
