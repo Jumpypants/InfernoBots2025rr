@@ -25,7 +25,8 @@ public class TransferringState implements MurphyState {
         mainTask = new MurphySequentialTask(
                 new MurphyParallelTask( false,
                         new Intake.WristTask(intake, Intake.WRIST_UP_POSITION),
-                        new Intake.MoveSlideTask(intake, Intake.SLIDE_IN_POSITION)
+                        new Intake.MoveSlideTask(intake, Intake.SLIDE_IN_POSITION),
+                        new Intake.FlipTask(intake, Intake.FLIP_LOW_POSITION)
                 ),
                 new Intake.TransferSpinTask(intake)
         );

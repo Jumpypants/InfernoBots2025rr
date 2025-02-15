@@ -12,9 +12,11 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.IMU;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.murphy.MurphyStateMachine;
 import org.firstinspires.ftc.teamcode.robotStates.IntakingState;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
+import org.firstinspires.ftc.teamcode.subsystems.Kicker;
 import org.firstinspires.ftc.teamcode.subsystems.Outtake;
 import org.firstinspires.ftc.teamcode.subsystems.Robot;
 import org.firstinspires.ftc.teamcode.vision.Sample;
@@ -26,6 +28,11 @@ import java.util.ArrayList;
 
 @Config
 public class DanielOpMode extends LinearOpMode {
+    MotorEx backRight;
+    MotorEx frontRight;
+    MotorEx backLeft;
+    MotorEx frontLeft;
+
     public static double KP = 0.001;
     public static double KI = 0.0;
     public static double KD = 0.004;
@@ -50,10 +57,13 @@ public class DanielOpMode extends LinearOpMode {
 
         Intake intake = new Intake(hardwareMap);
         Outtake outtake = new Outtake(hardwareMap);
+        Kicker kicker = new Kicker(hardwareMap);
 
         outtake.setSpin(Outtake.SPIN_IN_POSITION);
         intake.setWrist(Intake.WRIST_UP_POSITION);
         outtake.setClaw(Outtake.CLAW_CLOSED_POSITION);
+        intake.setFlip(Intake.FLIP_LOW_POSITION);
+        kicker.setKicker(Kicker.IN_POSITION);
 
         Robot robot = new Robot(
                 gamepad1,
@@ -63,10 +73,11 @@ public class DanielOpMode extends LinearOpMode {
                 driveBase,
                 imu,
                 dashboardTelemetry,
-                Robot.Alliance.RED
+                Robot.Alliance.RED,
+                kicker
         );
 
-        while (!opModeIsActive()) {
+        while (opModeInInit()) {
             if (gamepad2.dpad_up) {
                 intake.getSlideMotor().resetEncoder();
             }
@@ -81,7 +92,7 @@ public class DanielOpMode extends LinearOpMode {
                 robot.alliance = Robot.Alliance.BLUE;
             }
 
-            outtake.setClaw(Outtake.CLAW_CLOSED_POSITION);
+            intake.setWrist(Intake.WRIST_UP_POSITION);
         }
 
         MurphyStateMachine stateMachine = new MurphyStateMachine(new IntakingState(robot));
@@ -105,29 +116,24 @@ public class DanielOpMode extends LinearOpMode {
                 imu.resetYaw();
             }
 
-            if (gamepad1.a) {
-                outtake.setSpin(Outtake.SPIN_IN_POSITION);
-            }
-            if (gamepad1.b) {
-                outtake.setSpin(Outtake.SPIN_MID_POSITION);
-            }
-            if (gamepad1.x) {
-                outtake.setSpin(Outtake.SPIN_OUT_POSITION);
-            }
-
 
             stateMachine.step(dashboardTelemetry);
 
             intake.stepSlide(dashboardTelemetry);
             outtake.stepSlide(dashboardTelemetry);
 
-            stepDriveBase(driveBase, imu, dashboardTelemetry);
+            stepDriveBase(driveBase, imu, robot);
+
+            dashboardTelemetry.addData("FrontLeft", frontLeft.motorEx.getCurrent(CurrentUnit.MILLIAMPS));
+            dashboardTelemetry.addData("FrontRight", frontRight.motorEx.getCurrent(CurrentUnit.MILLIAMPS));
+            dashboardTelemetry.addData("BackLeft", backLeft.motorEx.getCurrent(CurrentUnit.MILLIAMPS));
+            dashboardTelemetry.addData("BackRight", backRight.motorEx.getCurrent(CurrentUnit.MILLIAMPS));
 
             dashboardTelemetry.update();
         }
     }
 
-    private void stepDriveBase(MecanumDrive driveBase, IMU imu, Telemetry telemetry) {
+    private void stepDriveBase(MecanumDrive driveBase, IMU imu, Robot robot) {
         double x = gamepad1.left_stick_x;
         double y = -gamepad1.left_stick_y;
         double r = gamepad1.right_stick_x;
@@ -149,6 +155,8 @@ public class DanielOpMode extends LinearOpMode {
             r /= 4;
         }
 
+        r += robot.rotationOffset;
+
         driveBase.driveFieldCentric(x, y, r, imu.getRobotYawPitchRollAngles().getYaw());
     }
 
@@ -164,22 +172,22 @@ public class DanielOpMode extends LinearOpMode {
     }
 
     private MecanumDrive getDriveBase() {
-        MotorEx frontLeft = new MotorEx(hardwareMap, "leftFront");
+        frontLeft = new MotorEx(hardwareMap, "leftFront");
         frontLeft.setInverted(true);
         frontLeft.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
         frontLeft.setRunMode(Motor.RunMode.RawPower);
 
-        MotorEx frontRight = new MotorEx(hardwareMap, "rightFront");
+        frontRight = new MotorEx(hardwareMap, "rightFront");
         frontRight.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
         frontRight.setInverted(true);
         frontRight.setRunMode(Motor.RunMode.RawPower);
 
-        MotorEx backLeft = new MotorEx(hardwareMap, "leftBack");
+        backLeft = new MotorEx(hardwareMap, "leftBack");
         backLeft.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
         backLeft.setInverted(true);
         backLeft.setRunMode(Motor.RunMode.RawPower);
 
-        MotorEx backRight = new MotorEx(hardwareMap, "rightBack");
+        backRight = new MotorEx(hardwareMap, "rightBack");
         backRight.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
         backRight.setInverted(true);
         backRight.setRunMode(Motor.RunMode.RawPower);

@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.vision;
 import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.roadrunner.Rotation2d;
 
 import org.opencv.core.RotatedRect;
 
@@ -10,7 +11,7 @@ import org.opencv.core.RotatedRect;
 public class Sample {
     public static double TO_INCHES_RATIO = 0.4;
 
-    private final double x, y, z;
+    private double x, y, z;
 
     private final String color;
 
@@ -34,7 +35,7 @@ public class Sample {
     }
 
     public double getAngle() {
-        return Math.atan2(z, x);
+        return Math.atan(x / y);
     }
 
     public double getDistance() {

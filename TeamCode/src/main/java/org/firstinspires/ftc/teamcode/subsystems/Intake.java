@@ -20,14 +20,18 @@ import org.firstinspires.ftc.teamcode.murphy.MurphyTask;
 
 @Config
 public class Intake {
-    public static double SAMPLE_DISTANCE = 1.5;
+    public static double TOP_DOWN_WRIST_OFFSET = -0.04;
+    public static double SAMPLE_DISTANCE = 0.7;
 
-    public static double WRIST_DOWN_POSITION = 0.235;
-    public static double WRIST_MID_POSITION = 0.4;
-    public static double WRIST_UP_POSITION = 0.82;
+    public static double WRIST_DOWN_POSITION = 0.202;
+    public static double WRIST_MID_POSITION = 0.3;
+    public static double WRIST_UP_POSITION = 0.85;
 
-    public static double SPIN_IN = -1;
-    public static double SPIN_OUT = 1;
+    public static double FLIP_LOW_POSITION = 0.1;
+    public static double FLIP_HIGH_POSITION = 0.78;
+
+    public static double SPIN_IN = 1;
+    public static double SPIN_OUT = -1;
     public static double SPIN_STOP = 0;
 
     public static double SLIDE_IN_POSITION = 0;
@@ -51,11 +55,14 @@ public class Intake {
     private final Servo WRIST_LEFT_SERVO;
     private final Servo WRIST_RIGHT_SERVO;
 
-    private final CRServo SPIN_LEFT_SERVO;
-    private final CRServo SPIN_RIGHT_SERVO;
+    private final Servo FLIP_SERVO;
+
+    private final CRServo SPIN_SERVO;
 
     private final ColorSensor COLOR_SENSOR;
     private final DistanceSensor DISTANCE_SENSOR;
+
+    private boolean isFlippedLow = false;
 
     public Intake(HardwareMap hardwareMap) {
         SLIDE_MOTOR = new Motor(hardwareMap, "intakeSlide");
@@ -65,11 +72,10 @@ public class Intake {
         WRIST_LEFT_SERVO = hardwareMap.get(Servo.class, "intakeWristLeft");
         WRIST_RIGHT_SERVO = hardwareMap.get(Servo.class, "intakeWristRight");
 
-        SPIN_LEFT_SERVO = new CRServo(hardwareMap, "intakeSpinLeft");
-        SPIN_LEFT_SERVO.setRunMode(CRServo.RunMode.RawPower);
+        SPIN_SERVO = new CRServo(hardwareMap, "intakeSpin");
+        SPIN_SERVO.setRunMode(CRServo.RunMode.RawPower);
 
-        SPIN_RIGHT_SERVO = new CRServo(hardwareMap, "intakeSpinRight");
-        SPIN_RIGHT_SERVO.setRunMode(CRServo.RunMode.RawPower);
+        FLIP_SERVO = hardwareMap.get(Servo.class, "intakeFlip");
 
         COLOR_SENSOR = hardwareMap.get(ColorSensor.class, "colorSensor");
         DISTANCE_SENSOR = hardwareMap.get(DistanceSensor.class, "colorSensor");
@@ -100,12 +106,11 @@ public class Intake {
     }
 
     public void setSpin (double p) {
-        SPIN_LEFT_SERVO.set(p);
-        SPIN_RIGHT_SERVO.set(-p);
+        SPIN_SERVO.set(p);
     }
 
     public double getSpin() {
-        return SPIN_LEFT_SERVO.get();
+        return SPIN_SERVO.get();
     }
 
     public void setWrist (double p) {
@@ -113,8 +118,13 @@ public class Intake {
         WRIST_RIGHT_SERVO.setPosition(1 - p);
     }
 
-    public double getWrist() {
-        return WRIST_LEFT_SERVO.getPosition();
+    public void setFlip (double p) {
+        isFlippedLow = p == FLIP_LOW_POSITION;
+        FLIP_SERVO.setPosition(p);
+    }
+
+    public boolean getIsFlippedLow () {
+        return isFlippedLow;
     }
 
     public double getSlidePosition() {
@@ -163,6 +173,28 @@ public class Intake {
         return DISTANCE_SENSOR.getDistance(DistanceUnit.INCH) <= SAMPLE_DISTANCE;
     }
 
+    public static class FlipTask extends MurphyTask {
+        private final double requiredTime;
+        private final Intake intake;
+        private final double flipPosition;
+
+        public FlipTask(Intake intake, double flipPosition) {
+            requiredTime = 0.5;
+            this.intake = intake;
+            this.flipPosition = flipPosition;
+        }
+
+        @Override
+        protected void initialize(Telemetry telemetry) {
+            intake.setFlip(flipPosition);
+        }
+
+        @Override
+        protected boolean run(Telemetry telemetry) {
+            return ELAPSED_TIME.seconds() < requiredTime;
+        }
+    }
+
 
     public static class WristTask extends MurphyTask {
         private final double requiredTime;
@@ -170,7 +202,7 @@ public class Intake {
         private final double wristPosition;
 
         public WristTask(Intake intake, double wristPosition) {
-            requiredTime = 1.5;
+            requiredTime = 0.5;
             this.intake = intake;
             this.wristPosition = wristPosition;
         }
