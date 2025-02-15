@@ -17,6 +17,7 @@ public class Robot {
 
     public final Intake intake;
     public final Outtake outtake;
+    public final Kicker kicker;
     public final MecanumDrive driveBase;
     public final IMU imu;
 
@@ -24,7 +25,9 @@ public class Robot {
 
     public Alliance alliance;
 
-    public Robot(Gamepad gamepad1, Gamepad gamepad2, Intake intake, Outtake outtake, MecanumDrive driveBase, IMU imu, Telemetry telemetry, Alliance alliance) {
+    public double rotationOffset = 0;
+
+    public Robot(Gamepad gamepad1, Gamepad gamepad2, Intake intake, Outtake outtake, MecanumDrive driveBase, IMU imu, Telemetry telemetry, Alliance alliance, Kicker kicker) {
         this.gamepad1 = gamepad1;
         this.gamepad2 = gamepad2;
         this.intake = intake;
@@ -33,5 +36,6 @@ public class Robot {
         this.imu = imu;
         this.telemetry = telemetry;
         this.alliance = alliance;
+        this.kicker = kicker;
     }
 }

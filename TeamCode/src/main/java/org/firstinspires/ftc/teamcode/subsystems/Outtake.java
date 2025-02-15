@@ -32,7 +32,7 @@ public class Outtake {
 
     public static double SPIN_OUT_POSITION = 0.9;
     public static double SPIN_MID_POSITION = 0.7;
-    public static double SPIN_IN_POSITION = 0.47;
+    public static double SPIN_IN_POSITION = 0.53;
 
     public static double SPECIMEN_UP_POSITION = 25;
     public static double SPECIMEN_DOWN_POSITION = 14;
