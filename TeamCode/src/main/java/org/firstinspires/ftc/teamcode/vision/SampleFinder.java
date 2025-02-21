@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 
 public class SampleFinder {
-    public static final double MIN_STONE_AREA = 0;
+    public static final double MIN_STONE_AREA = 500;
 
     private final double[] cameraPosition;
 
@@ -24,7 +24,7 @@ public class SampleFinder {
         this.cameraPosition = cameraPosition;
 
         // Initialize OpenCV camera
-        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "96833B40", hardwareMap.appContext.getPackageName());
+        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "33DDE480", hardwareMap.appContext.getPackageName());
         camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
 
         // Initialize pipeline
@@ -57,8 +57,8 @@ public class SampleFinder {
         // Convert the stones to samples
         ArrayList<Sample> samples = getSampleList(stones);
 
-        // Sort the stones by z distance in ascending order
-        samples.sort(Comparator.comparingDouble(Sample::getZ));
+        // Sort the stones by y distance in ascending order
+        samples.sort(Comparator.comparingDouble(Sample::getY));
 
         // Print the samples
         for (int i = 0; i < samples.size(); i++) {

@@ -343,7 +343,7 @@ public class TeleOpStateMachineV0 {
 //        }
 //
 //        if (gamepad.left_trigger > 0) {
-//            intake.setWrist(Intake.WRIST_UP_POSITION);
+//            intake.setWrist(Intake.WRIST_TRANSFER_POSITION);
 //        }
 //
 //        if (gamepad.y) {

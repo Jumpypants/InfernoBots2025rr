@@ -28,9 +28,9 @@ public class IntakingState implements MurphyState {
         Gamepad gamepad2 = robot.gamepad2;
         IMU imu = robot.imu;
 
-        intake.driveSlide(gamepad2.left_stick_x, gamepad2.left_stick_y, imu.getRobotYawPitchRollAngles().getYaw(), gamepad2.left_bumper);
+        intake.driveSlide(gamepad2.left_stick_x, gamepad2.left_stick_y, imu.getRobotYawPitchRollAngles().getYaw(), !gamepad2.left_bumper);
 
-        robot.rotationOffset = gamepad2.left_stick_x / 6;
+        robot.rotationOffset = gamepad2.left_stick_x / 5;
 
 
         double range = Intake.WRIST_MID_POSITION - Intake.WRIST_DOWN_POSITION;

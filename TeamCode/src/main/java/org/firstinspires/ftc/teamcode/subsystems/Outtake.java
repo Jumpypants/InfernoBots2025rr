@@ -25,14 +25,14 @@ public class Outtake {
     private final Servo CLAW_SERVO;
 
     public static double SLIDE_INCH_PER_ROTATION = 13.227;
-    public static double ALLOWED_ERROR = 1;
+    public static double ALLOWED_ERROR = 1.3;
 
     public static double SLIDE_MAX_POSITION = 42;
     public static double SLIDE_MIN_POSITION = 0;
 
-    public static double SPIN_OUT_POSITION = 0.9;
+    public static double SPIN_OUT_POSITION = 0.95;
     public static double SPIN_MID_POSITION = 0.7;
-    public static double SPIN_IN_POSITION = 0.53;
+    public static double SPIN_IN_POSITION = 0.51;
 
     public static double SPECIMEN_UP_POSITION = 25;
     public static double SPECIMEN_DOWN_POSITION = 14;
@@ -85,8 +85,6 @@ public class Outtake {
         pidfController.setD(KD);
         pidfController.setF(KF);
         double power = pidfController.calculate(slidePosition);
-        telemetry.addData("power", power);
-        telemetry.addData("position", getSlidePosition());
         setSlidePower(power);
 
         if (TOUCH_SENSOR.isPressed()) {
@@ -112,17 +110,6 @@ public class Outtake {
     }
 
     public void setSlidePower (double p) {
-//        if (SLIDE_MOTOR_BACK.get() < p) {
-//            SLIDE_MOTOR_BACK.set(SLIDE_MOTOR_BACK.get() + 0.003);
-//        } else {
-//            SLIDE_MOTOR_BACK.set(p);
-//        }
-//
-//        if (SLIDE_MOTOR_FRONT.get() < p) {
-//            SLIDE_MOTOR_FRONT.set(SLIDE_MOTOR_FRONT.get() + 0.003);
-//        } else {
-//            SLIDE_MOTOR_FRONT.set(p);
-//        }
 
         SLIDE_MOTOR_BACK.set(p);
         SLIDE_MOTOR_FRONT.set(p);
