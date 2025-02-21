@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.vision;
 
+import com.acmerobotics.dashboard.config.Config;
+
 import org.openftc.easyopencv.OpenCvPipeline;
 
 import org.opencv.calib3d.Calib3d;
@@ -19,6 +21,7 @@ import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
 
+@Config
 public class SampleDetectionPipelinePNP extends OpenCvPipeline
 {
     /*
@@ -41,9 +44,9 @@ public class SampleDetectionPipelinePNP extends OpenCvPipeline
     /*
      * Threshold values
      */
-    static final int YELLOW_MASK_THRESHOLD = 57;
-    static final int BLUE_MASK_THRESHOLD = 150;
-    static final int RED_MASK_THRESHOLD = 198;
+    public static int YELLOW_MASK_THRESHOLD = 90;
+    public static int BLUE_MASK_THRESHOLD = 150;
+    public static int RED_MASK_THRESHOLD = 180;
 
     /*
      * The elements we use for noise reduction

@@ -16,11 +16,13 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
+import org.firstinspires.ftc.teamcode.subsystems.Kicker;
 import org.firstinspires.ftc.teamcode.subsystems.Robot;
 import org.firstinspires.ftc.teamcode.vision.Sample;
 import org.firstinspires.ftc.teamcode.vision.SampleFinder;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 
 @Config
 @Autonomous(name = "VisionAutonTest", group = "Autonomous")
@@ -28,11 +30,12 @@ public class VisionAutonTest extends LinearOpMode {
     FtcDashboard dashboard = FtcDashboard.getInstance();
     Telemetry dashboardTelemetry = dashboard.getTelemetry();
 
-    private Robot.Alliance alliance = Robot.Alliance.RED;
+    private Robot.Alliance alliance = Robot.Alliance.BLUE;
     private SampleFinder sampleFinder;
     private MecanumDrive drive;
 
     private Intake intake;
+    private Kicker kicker;
 
     private Sample selectedSample;
 
@@ -49,6 +52,9 @@ public class VisionAutonTest extends LinearOpMode {
         intake.getSlideMotor().resetEncoder();
         intake.setWrist(Intake.WRIST_UP_POSITION);
         intake.setFlip(Intake.FLIP_HIGH_POSITION);
+
+        kicker = new Kicker(hardwareMap);
+        kicker.setKicker(Kicker.IN_POSITION);
 
         while (opModeInInit()) {
             dashboardTelemetry.update();
@@ -74,16 +80,15 @@ public class VisionAutonTest extends LinearOpMode {
         };
 
         Action mainAction = new SequentialAction(
+                new Kicker.KickActionRR(kicker),
+                waitAction(0.2),
                 findAction(),
-//                new Rotate(),
-//                waitAction(1),
-//                findAction(),
                 new ParallelAction(
                         new Rotate(),
-                        new Extend()
+                        new Intake.WristActionRR(intake, Intake.WRIST_DOWN_POSITION),
+                        new Intake.FlipActionRR(intake, Intake.FLIP_LOW_POSITION)
                 ),
-                new Intake.WristActionRR(intake, Intake.WRIST_MID_POSITION),
-                new Intake.CollectSampleHighActionRR(intake)
+                new Intake.CollectSampleLowActionRR(intake, alliance)
         );
 
         Actions.runBlocking(new ParallelAction(
@@ -100,11 +105,29 @@ public class VisionAutonTest extends LinearOpMode {
         return telemetryPacket -> {
             ArrayList<Sample> samples = sampleFinder.get(telemetry);
 
-            samples.removeIf(sample -> !sample.getColor().equals("Blue"));
-
             dashboardTelemetry.addData("sample count", samples.size());
 
+            // Remove samples that have another sample in an area in front of them
+            samples.removeIf(sample -> {
+                for (Sample otherSample : samples) {
+                    if (sample != otherSample) {
+                        if (otherSample.getX() > sample.getX() - 1.5
+                                && otherSample.getX() < sample.getX() + 1.5
+                                && otherSample.getY() < sample.getY()) {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            });
+
+            samples.removeIf(sample -> sample.getColor().equals("Red"));
+
             if (samples.isEmpty()) return true;
+
+            // Sort the samples by how close they are to x = 0
+            samples.sort(Comparator.comparingDouble(sample -> Math.abs(sample.getX())));
 
             selectedSample = samples.get(0);
 

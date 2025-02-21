@@ -23,7 +23,7 @@ public class Intake {
     public static double TOP_DOWN_WRIST_OFFSET = -0.04;
     public static double SAMPLE_DISTANCE = 0.7;
 
-    public static double WRIST_DOWN_POSITION = 0.202;
+    public static double WRIST_DOWN_POSITION = 0.21;
     public static double WRIST_MID_POSITION = 0.3;
     public static double WRIST_TRANSFER_POSITION = 0.85;
     public static double WRIST_UP_POSITION = 0.6;
@@ -425,12 +425,43 @@ public class Intake {
             }
 
             if (intake.isSlideAtSetPoint() || distance < 0) {
-                intake.setWrist(Intake.WRIST_DOWN_POSITION + Intake.TOP_DOWN_WRIST_OFFSET);
-                intake.setSpin(Intake.SPIN_IN);
+                intake.setWrist(WRIST_DOWN_POSITION + TOP_DOWN_WRIST_OFFSET);
+                intake.setSpin(SPIN_IN);
                 if (intake.hasSample()) {
-                    intake.setSpin(Intake.SPIN_STOP);
+                    intake.setSpin(SPIN_STOP);
                     return false;
                 }
+            }
+
+            return true;
+        }
+    }
+
+    public static class CollectSampleLowActionRR implements Action {
+        private final Intake intake;
+        private final ElapsedTime elapsedTime = new ElapsedTime();
+        private final Robot.Alliance ALLIANCE;
+
+        private boolean initialized = false;
+
+        public CollectSampleLowActionRR(Intake intake, Robot.Alliance alliance) {
+            this.intake = intake;
+            this.ALLIANCE = alliance;
+        }
+
+        @Override
+        public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+            if (!initialized) {
+                initialized = true;
+                elapsedTime.reset();
+                intake.setSpin(SPIN_IN);
+            }
+
+            intake.setSlideSetPoint(intake.getSlidePosition() + 2.5);
+
+            if (intake.hasSampleOfCorrectColor(ALLIANCE) || elapsedTime.seconds() > 2) {
+                intake.setSpin(SPIN_STOP);
+                return false;
             }
 
             return true;
