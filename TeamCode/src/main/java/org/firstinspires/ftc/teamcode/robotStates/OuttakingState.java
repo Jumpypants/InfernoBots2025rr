@@ -41,7 +41,7 @@ public class OuttakingState implements MurphyState {
     public MurphyState step() {
         IMU imu = robot.imu;
 
-        intake.driveSlide(gamepad2.left_stick_x, gamepad2.left_stick_y, imu.getRobotYawPitchRollAngles().getYaw(), gamepad2.right_stick_button);
+        intake.driveSlide(gamepad2.left_stick_x, gamepad2.left_stick_y, imu.getRobotYawPitchRollAngles().getYaw(), !gamepad2.left_bumper);
 
         if (!mainTask.step(robot.telemetry) || gamepad2.left_trigger > 0.2) {
             outtake.setSlideSetPoint(Outtake.DOWN_POSITION);

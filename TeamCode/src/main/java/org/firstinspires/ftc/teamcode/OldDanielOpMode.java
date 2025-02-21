@@ -16,7 +16,7 @@ import org.firstinspires.ftc.teamcode.subsystems.IntakeV0;
 import org.firstinspires.ftc.teamcode.subsystems.OuttakeV0;
 import org.firstinspires.ftc.teamcode.vision.SampleFinder;
 
-@TeleOp(name = "--DanielOpMode")
+@TeleOp(name = "OldDanielOpMode")
 
 @Config
 public class OldDanielOpMode extends LinearOpMode {

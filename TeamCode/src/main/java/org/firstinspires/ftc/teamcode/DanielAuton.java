@@ -1,15 +1,11 @@
 package org.firstinspires.ftc.teamcode;
 
-import androidx.annotation.NonNull;
-
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
-import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -18,10 +14,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Outtake;
 import org.firstinspires.ftc.teamcode.subsystems.Robot;
-import org.firstinspires.ftc.teamcode.vision.Sample;
 import org.firstinspires.ftc.teamcode.vision.SampleFinder;
-
-import java.util.ArrayList;
 
 @Config
 @Autonomous(name = "--DanielAuton", group = "Autonomous")
@@ -29,22 +22,21 @@ public class DanielAuton extends LinearOpMode {
     FtcDashboard dashboard = FtcDashboard.getInstance();
     Telemetry dashboardTelemetry = dashboard.getTelemetry();
 
-//    public static double SAMPLE_DISTANCE_OFFSET = -10;
-//    public static double SAMPLE_ANGLE_COEFF = 0.8;
+    public static double INTAKE_EXTEND_DISTANCE = 10;
 
     public static double BASKET_X = 4.5;
     public static double BASKET_Y = 20.5;
     public static double BASKET_R = Math.PI * 1.75;
 
-    public static double SAMPLE_1_X = 16;
-    public static double SAMPLE_1_Y = 10.5;
+    public static double SAMPLE_1_X = 9.5;
+    public static double SAMPLE_1_Y = 8;
     public static double SAMPLE_1_R = 0;
 
-    public static double SAMPLE_2_X = 16;
-    public static double SAMPLE_2_Y = 21;
+    public static double SAMPLE_2_X = 9.5;
+    public static double SAMPLE_2_Y = 22;
     public static double SAMPLE_2_R = 0;
 
-    public static double SAMPLE_3_X = 21;
+    public static double SAMPLE_3_X = 12;
     public static double SAMPLE_3_Y = 21;
     public static double SAMPLE_3_R = 0.47;
 
@@ -125,9 +117,25 @@ public class DanielAuton extends LinearOpMode {
             return true;
         };
 
-        intake.setWrist(Intake.WRIST_UP_POSITION);
+        intake.setWrist(Intake.WRIST_TRANSFER_POSITION);
+        intake.setFlip(Intake.FLIP_LOW_POSITION);
+        outtake.setSpin(Outtake.SPIN_IN_POSITION);
 
-        while (!opModeIsActive()) {
+        while (opModeInInit()) {
+            if (gamepad2.dpad_up) {
+                intake.getSlideMotor().resetEncoder();
+            }
+            if (gamepad2.dpad_down) {
+                outtake.getSlideMotor().resetEncoder();
+            }
+
+            if (gamepad2.dpad_right) {
+                alliance = Robot.Alliance.RED;
+            }
+            if (gamepad2.dpad_left) {
+                alliance = Robot.Alliance.BLUE;
+            }
+
             dashboardTelemetry.update();
             sampleFinder.get(dashboardTelemetry);
         }
@@ -136,10 +144,6 @@ public class DanielAuton extends LinearOpMode {
                 tickAction,
                 mainAction
         ));
-
-        while (opModeIsActive()) {
-            dashboardTelemetry.update();
-        }
     }
 
     private Action cycleSpikeMark(Pose2d pos) {
@@ -147,9 +151,11 @@ public class DanielAuton extends LinearOpMode {
                 new ParallelAction(
                         goTo(pos),
                         retractOuttake(),
-                        new Intake.WristActionRR(intake, Intake.WRIST_DOWN_POSITION)
+                        new Intake.WristActionRR(intake, Intake.WRIST_MID_POSITION),
+                        new Intake.FlipActionRR(intake, Intake.FLIP_HIGH_POSITION),
+                        new Intake.MoveSlideActionRR(intake, INTAKE_EXTEND_DISTANCE)
                 ),
-                new Intake.CollectSampleActionRR(intake),
+                new Intake.CollectSampleHighActionRR(intake, INTAKE_EXTEND_DISTANCE),
                 transfer(),
                 goOuttake()
         );
@@ -165,11 +171,11 @@ public class DanielAuton extends LinearOpMode {
     private Action transfer() {
         return new SequentialAction(
                 new ParallelAction(
-                        new Intake.WristActionRR(intake, Intake.WRIST_UP_POSITION),
+                        new Intake.WristActionRR(intake, Intake.WRIST_TRANSFER_POSITION),
+                        new Intake.FlipActionRR(intake, Intake.FLIP_LOW_POSITION),
                         new Intake.MoveSlideActionRR(intake, Intake.SLIDE_IN_POSITION)
                 ),
-                new Intake.TransferSpinActionRR(intake),
-                new Intake.ClearWristActionRR(intake)
+                new Intake.TransferSpinActionRR(intake)
         );
     }
 
@@ -179,123 +185,19 @@ public class DanielAuton extends LinearOpMode {
                 .build();
     }
 
-    private Action rotateTo(double angle) {
-        while (angle < 0) {
-            angle += Math.PI * 2;
-        }
-
-        while (angle > Math.PI * 2) {
-            angle -= Math.PI * 2;
-        }
-
-        return drive.actionBuilder(beginPos)
-                .turnTo(angle)
-                .build();
-    }
-
-//    private class rotateToSample implements Action {
-//        private Action action = null;
-//        @Override
-//        public boolean run(@NonNull TelemetryPacket telemetryPacket) {
-//            if (action == null) action = rotateTo(SUBMERSIBLE_R + sampleAngle * SAMPLE_ANGLE_COEFF);
-//            return action.run(telemetryPacket);
-//        }
-//    }
-
     private Action goOuttake () {
         return new SequentialAction(
                 new ParallelAction(
                         goTo(basketPos),
-                        new Outtake.MoveSlideActionRR(outtake, Outtake.HIGH_BASKET_POSITION),
-                        new Outtake.SpinToMidActionRR(outtake)
+                        new SequentialAction(
+                                new Intake.ClearWristActionRR(intake),
+                                new ParallelAction(
+                                        new Outtake.MoveSlideActionRR(outtake, Outtake.HIGH_BASKET_POSITION),
+                                        new Outtake.SpinToMidActionRR(outtake)
+                                )
+                        )
                 ),
                 new Outtake.DumpActionRR(outtake)
         );
     }
-
-//    private Action cycleSubmersible () {
-//        return new SequentialAction (
-//                new ParallelAction(
-//                        new SequentialAction(
-//                                //goTo(submersiblePos),
-//                                new FindSample()
-//                        ),
-//                        retractOuttake(),
-//                        new Intake.WristActionRR(intake, Intake.WRIST_UP_POSITION)
-//                ),
-//                new ParallelAction(
-//                        new rotateToSample(),
-//                        CollectSubmersibleSample()
-//                ),
-//                transfer(),
-//                goOuttake()
-//        );
-//    }
-
-//    private class FindSample implements Action {
-//        @Override
-//        public boolean run(@NonNull TelemetryPacket telemetryPacket) {
-//            ArrayList<Sample> samples = sampleFinder.get(dashboardTelemetry);
-//
-//            Sample sample = selectSample(samples);
-//
-//            sampleAngle = sample.getAngle();
-//            sampleDistance = sample.getZ();
-//
-//            return samples.isEmpty();
-//        }
-//    }
-
-//    private Sample selectSample(ArrayList<Sample> samples) {
-//        // Score each sample and select the best one
-////        Sample bestSample = null;
-////        double bestScore = Double.NEGATIVE_INFINITY;
-////        for (Sample sample : samples) {
-////            double score = evalSample(sample, samples);
-////            if (score > bestScore) {
-////                bestSample = sample;
-////                bestScore = score;
-////            }
-////        }
-////
-////        return bestSample;
-//
-//        return samples.get(0);
-//    }
-//
-//    private double evalSample(Sample sample, ArrayList<Sample> samples) {
-//        Vector2d center = new Vector2d(20, 30);
-//
-//        if (alliance == Robot.Alliance.RED) {
-//            if (sample.getColor().equals("Blue")) return Double.NEGATIVE_INFINITY;
-//        } else {
-//            if (sample.getColor().equals("Red")) return Double.NEGATIVE_INFINITY;
-//        }
-//
-//        // Score based on distance from center
-//        double xDist = Math.abs(sample.getX() - center.x);
-//        double yDist = Math.abs(sample.getZ() - center.y);
-//        double dist = Math.hypot(xDist, yDist);
-//
-//        double score = 1 / dist + 1;
-//
-//        // Reduce score if there are other samples in the area in front of this sample (the area closer to the robot).
-//        for (Sample otherSample : samples) {
-//            if (otherSample == sample) continue;
-//            if (otherSample.getZ() < sample.getZ()) {
-//                double sampleDist = Math.hypot(otherSample.getX() - sample.getX(), otherSample.getZ() - sample.getZ());
-//                score -= 1 / sampleDist;
-//            }
-//        }
-//
-//        return score;
-//    }
-
-//    private Action CollectSubmersibleSample () {
-//        return new SequentialAction(
-//                new Intake.MoveSlideActionRR(intake, sampleDistance + SAMPLE_DISTANCE_OFFSET),
-//                new Intake.WristActionRR(intake, Intake.WRIST_DOWN_POSITION),
-//                new Intake.CollectSampleActionRR(intake)
-//        );
-//    }
 }

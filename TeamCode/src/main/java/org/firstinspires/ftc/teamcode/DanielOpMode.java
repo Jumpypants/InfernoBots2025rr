@@ -19,10 +19,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Kicker;
 import org.firstinspires.ftc.teamcode.subsystems.Outtake;
 import org.firstinspires.ftc.teamcode.subsystems.Robot;
-import org.firstinspires.ftc.teamcode.vision.Sample;
 import org.firstinspires.ftc.teamcode.vision.SampleFinder;
-
-import java.util.ArrayList;
 
 @TeleOp(name = "--DanielOpMode")
 
@@ -44,7 +41,7 @@ public class DanielOpMode extends LinearOpMode {
     public void runOpMode() {
         MecanumDrive driveBase = getDriveBase();
 
-        //SampleFinder sampleFinder = new SampleFinder(hardwareMap, telemetry, new double[]{0, 0, 0});
+        SampleFinder sampleFinder = new SampleFinder(hardwareMap, telemetry, new double[]{0, 0, 0});
 
         IMU imu = new LazyImu(hardwareMap, "imu", new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
@@ -60,7 +57,7 @@ public class DanielOpMode extends LinearOpMode {
         Kicker kicker = new Kicker(hardwareMap);
 
         outtake.setSpin(Outtake.SPIN_IN_POSITION);
-        intake.setWrist(Intake.WRIST_UP_POSITION);
+        intake.setWrist(Intake.WRIST_TRANSFER_POSITION);
         outtake.setClaw(Outtake.CLAW_CLOSED_POSITION);
         intake.setFlip(Intake.FLIP_LOW_POSITION);
         kicker.setKicker(Kicker.IN_POSITION);
@@ -92,7 +89,7 @@ public class DanielOpMode extends LinearOpMode {
                 robot.alliance = Robot.Alliance.BLUE;
             }
 
-            intake.setWrist(Intake.WRIST_UP_POSITION);
+            intake.setWrist(Intake.WRIST_TRANSFER_POSITION);
         }
 
         MurphyStateMachine stateMachine = new MurphyStateMachine(new IntakingState(robot));
