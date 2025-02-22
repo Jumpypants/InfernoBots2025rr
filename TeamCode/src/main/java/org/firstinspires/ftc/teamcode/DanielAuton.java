@@ -1,7 +1,10 @@
 package org.firstinspires.ftc.teamcode;
 
+import androidx.annotation.NonNull;
+
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
@@ -9,12 +12,18 @@ import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
+import org.firstinspires.ftc.teamcode.subsystems.Kicker;
 import org.firstinspires.ftc.teamcode.subsystems.Outtake;
 import org.firstinspires.ftc.teamcode.subsystems.Robot;
+import org.firstinspires.ftc.teamcode.vision.Sample;
 import org.firstinspires.ftc.teamcode.vision.SampleFinder;
+
+import java.util.ArrayList;
+import java.util.Comparator;
 
 @Config
 @Autonomous(name = "--DanielAuton", group = "Autonomous")
@@ -23,6 +32,7 @@ public class DanielAuton extends LinearOpMode {
     Telemetry dashboardTelemetry = dashboard.getTelemetry();
 
     public static double INTAKE_EXTEND_DISTANCE = 10;
+    public static double INTAKE_SUBMERSIBLE_DISTANCE = 0;
 
     public static double BASKET_X = 4.5;
     public static double BASKET_Y = 20.5;
@@ -61,11 +71,11 @@ public class DanielAuton extends LinearOpMode {
     private MecanumDrive drive;
     private Intake intake;
     private Outtake outtake;
+    private Kicker kicker;
 
     private SampleFinder sampleFinder;
 
-    private double sampleAngle;
-    private double sampleDistance;
+    private Sample selectedSample;
 
     private Robot.Alliance alliance = Robot.Alliance.RED;
 
@@ -74,6 +84,7 @@ public class DanielAuton extends LinearOpMode {
         drive = new MecanumDrive(hardwareMap, beginPos);
         intake = new Intake(hardwareMap);
         outtake = new Outtake(hardwareMap);
+        kicker = new Kicker(hardwareMap);
 
         sampleFinder = new SampleFinder(hardwareMap, dashboardTelemetry, new double[]{0, 0, 0});
 
@@ -91,6 +102,7 @@ public class DanielAuton extends LinearOpMode {
                 cycleSpikeMark(sample1Pos),
                 cycleSpikeMark(sample2Pos),
                 cycleSpikeMark(sample3Pos),
+                cycleSubmersible(),
                 endAction
         );
 
@@ -120,6 +132,7 @@ public class DanielAuton extends LinearOpMode {
         intake.setWrist(Intake.WRIST_TRANSFER_POSITION);
         intake.setFlip(Intake.FLIP_LOW_POSITION);
         outtake.setSpin(Outtake.SPIN_IN_POSITION);
+        kicker.setKicker(Kicker.IN_POSITION);
 
         while (opModeInInit()) {
             if (gamepad2.dpad_up) {
@@ -156,6 +169,24 @@ public class DanielAuton extends LinearOpMode {
                         new Intake.MoveSlideActionRR(intake, INTAKE_EXTEND_DISTANCE)
                 ),
                 new Intake.CollectSampleHighActionRR(intake, INTAKE_EXTEND_DISTANCE),
+                transfer(),
+                goOuttake()
+        );
+    }
+
+    private Action cycleSubmersible() {
+        return new SequentialAction(
+                new ParallelAction(
+                        goTo(submersiblePos),
+                        retractOuttake(),
+                        new Intake.WristActionRR(intake, Intake.WRIST_UP_POSITION),
+                        new Intake.FlipActionRR(intake, Intake.FLIP_HIGH_POSITION),
+                        new Intake.MoveSlideActionRR(intake, INTAKE_SUBMERSIBLE_DISTANCE)
+                ),
+                new Kicker.KickActionRR(kicker),
+                waitAction(0.2),
+                findAction(),
+                new Intake.CollectSampleLowActionRR(intake, alliance),
                 transfer(),
                 goOuttake()
         );
@@ -199,5 +230,79 @@ public class DanielAuton extends LinearOpMode {
                 ),
                 new Outtake.DumpActionRR(outtake)
         );
+    }
+
+    private Action waitAction(double t) {
+        return new Action() {
+            private final ElapsedTime elapsedTime = new ElapsedTime();
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+                if (!initialized) {
+                    initialized = true;
+                    elapsedTime.reset();
+                }
+
+                return elapsedTime.seconds() < t;
+            }
+        };
+    }
+
+    private class RotateToSample implements Action {
+        Action driveAction = null;
+
+        @Override
+        public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+            if (driveAction == null) {
+                driveAction = drive.actionBuilder(drive.pose)
+                        .turnTo(Math.toRadians(selectedSample.getAngle()))
+                        .build();
+            }
+
+            return driveAction.run(telemetryPacket);
+        }
+    }
+
+    private Action findAction() {
+        return telemetryPacket -> {
+            ArrayList<Sample> samples = sampleFinder.get(telemetry);
+
+            dashboardTelemetry.addData("sample count", samples.size());
+
+            // Remove samples that have another sample in an area in front of them
+            samples.removeIf(sample -> {
+                for (Sample otherSample : samples) {
+                    if (sample != otherSample) {
+                        if (otherSample.getX() > sample.getX() - 1.5
+                                && otherSample.getX() < sample.getX() + 1.5
+                                && otherSample.getY() < sample.getY()) {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            });
+
+            if (alliance == Robot.Alliance.RED) {
+                samples.removeIf(sample -> sample.getColor().equals("Blue"));
+            } else {
+                samples.removeIf(sample -> sample.getColor().equals("Red"));
+            }
+
+            if (samples.isEmpty()) return true;
+
+            // Sort the samples by how close they are to x = 0
+            samples.sort(Comparator.comparingDouble(sample -> Math.abs(sample.getX())));
+
+            selectedSample = samples.get(0);
+
+            dashboardTelemetry.addData("selected Sample", selectedSample.toString());
+            dashboardTelemetry.addData("selected Sample angle", selectedSample.getAngle());
+            dashboardTelemetry.addData("selected Sample distance", selectedSample.getDistance());
+
+            return false;
+        };
     }
 }
