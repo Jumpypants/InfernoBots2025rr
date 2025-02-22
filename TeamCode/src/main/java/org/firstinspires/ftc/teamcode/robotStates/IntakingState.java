@@ -72,15 +72,19 @@ public class IntakingState implements MurphyState {
             return new TransferringState(robot, Outtake.LOW_BASKET_POSITION);
         }
 
-        if (intake.hasSampleOfCorrectColor(robot.alliance) && !gamepad2.right_stick_button) {
+        if (intake.hasSampleOfCorrectColor(robot.alliance)) {
             intake.setSpin(Intake.SPIN_STOP);
         } else if (intake.hasSample()) {
             intake.setSpin(Intake.SPIN_OUT);
         }
 
-        if (gamepad2.b) {
-            return new SpecimenState(robot);
+        if (gamepad2.right_stick_button) {
+            intake.setSpin(Intake.SPIN_OUT);
         }
+
+//        if (gamepad2.b) {
+//            return new SpecimenState(robot);
+//        }
 
         return this;
     }
