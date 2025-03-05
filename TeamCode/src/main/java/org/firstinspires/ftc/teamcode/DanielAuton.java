@@ -8,7 +8,9 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.Rotation2d;
 import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -31,28 +33,28 @@ public class DanielAuton extends LinearOpMode {
     FtcDashboard dashboard = FtcDashboard.getInstance();
     Telemetry dashboardTelemetry = dashboard.getTelemetry();
 
-    public static double INTAKE_EXTEND_DISTANCE = 10;
-    public static double INTAKE_SUBMERSIBLE_DISTANCE = 0;
+    public static double INTAKE_EXTEND_DISTANCE = 10.5;
+    public static double INTAKE_SUBMERSIBLE_DISTANCE = 2;
 
     public static double BASKET_X = 4.5;
     public static double BASKET_Y = 20.5;
     public static double BASKET_R = Math.PI * 1.75;
 
-    public static double SAMPLE_1_X = 9.5;
-    public static double SAMPLE_1_Y = 8;
+    public static double SAMPLE_1_X = 8;
+    public static double SAMPLE_1_Y = 7;
     public static double SAMPLE_1_R = 0;
 
-    public static double SAMPLE_2_X = 9.5;
+    public static double SAMPLE_2_X = 10;
     public static double SAMPLE_2_Y = 22;
     public static double SAMPLE_2_R = 0;
 
-    public static double SAMPLE_3_X = 12;
+    public static double SAMPLE_3_X = 14;
     public static double SAMPLE_3_Y = 21;
     public static double SAMPLE_3_R = 0.47;
 
-    public static double SUBMERSIBLE_X = 16;
-    public static double SUBMERSIBLE_Y = 20;
-    public static double SUBMERSIBLE_R = 0;
+    public static double SUBMERSIBLE_X = 52;
+    public static double SUBMERSIBLE_Y = -14;
+    public static double SUBMERSIBLE_R = Math.PI * 1.5;
 
     public static double END_X = 16;
     public static double END_Y = 10;
@@ -95,15 +97,6 @@ public class DanielAuton extends LinearOpMode {
                 goTo(endPos),
                 retractOuttake(),
                 new Intake.MoveSlideActionRR(intake, Intake.SLIDE_IN_POSITION)
-        );
-
-        Action mainAction = new SequentialAction(
-                goOuttake(),
-                cycleSpikeMark(sample1Pos),
-                cycleSpikeMark(sample2Pos),
-                cycleSpikeMark(sample3Pos),
-                cycleSubmersible(),
-                endAction
         );
 
         Action tickAction = telemetryPacket -> {
@@ -153,6 +146,14 @@ public class DanielAuton extends LinearOpMode {
             sampleFinder.get(dashboardTelemetry);
         }
 
+        Action mainAction = new SequentialAction(
+                goOuttake(),
+                cycleSpikeMark(sample1Pos),
+                cycleSpikeMark(sample2Pos),
+                cycleSpikeMark(sample3Pos),
+                cycleSubmersible()
+        );
+
         Actions.runBlocking(new ParallelAction(
                 tickAction,
                 mainAction
@@ -162,13 +163,17 @@ public class DanielAuton extends LinearOpMode {
     private Action cycleSpikeMark(Pose2d pos) {
         return new SequentialAction(
                 new ParallelAction(
-                        goTo(pos),
                         retractOuttake(),
-                        new Intake.WristActionRR(intake, Intake.WRIST_MID_POSITION),
-                        new Intake.FlipActionRR(intake, Intake.FLIP_HIGH_POSITION),
-                        new Intake.MoveSlideActionRR(intake, INTAKE_EXTEND_DISTANCE)
+                        new SequentialAction(
+                                new ParallelAction(
+                                        goTo(pos),
+                                        new Intake.WristActionRR(intake, Intake.WRIST_MID_POSITION),
+                                        new Intake.FlipActionRR(intake, Intake.FLIP_HIGH_POSITION),
+                                        new Intake.MoveSlideActionRR(intake, INTAKE_EXTEND_DISTANCE)
+                                ),
+                                new Intake.CollectSampleHighActionRR(intake, INTAKE_EXTEND_DISTANCE)
+                        )
                 ),
-                new Intake.CollectSampleHighActionRR(intake, INTAKE_EXTEND_DISTANCE),
                 transfer(),
                 goOuttake()
         );
@@ -177,7 +182,10 @@ public class DanielAuton extends LinearOpMode {
     private Action cycleSubmersible() {
         return new SequentialAction(
                 new ParallelAction(
-                        goTo(submersiblePos),
+                        drive.actionBuilder(new Pose2d(0, 0, 0))
+                                .splineToSplineHeading(new Pose2d(SUBMERSIBLE_X, SUBMERSIBLE_Y + 15, Math.toRadians(360 - 90)), 0)
+                                .splineToSplineHeading(new Pose2d(SUBMERSIBLE_X, SUBMERSIBLE_Y, Math.toRadians(360 - 90)), 0)
+                                .build(),
                         retractOuttake(),
                         new Intake.WristActionRR(intake, Intake.WRIST_UP_POSITION),
                         new Intake.FlipActionRR(intake, Intake.FLIP_HIGH_POSITION),
@@ -186,10 +194,32 @@ public class DanielAuton extends LinearOpMode {
                 new Kicker.KickActionRR(kicker),
                 waitAction(0.2),
                 findAction(),
+                new ParallelAction(
+                        new Intake.WristActionRR(intake, Intake.WRIST_DOWN_POSITION),
+                        new Intake.FlipActionRR(intake, Intake.FLIP_LOW_POSITION)
+                ),
+                new RotateToSample(),
                 new Intake.CollectSampleLowActionRR(intake, alliance),
                 transfer(),
-                goOuttake()
+                new BackOff()
         );
+    }
+
+    private class BackOff implements Action {
+        Action driveAction = null;
+
+        @Override
+        public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+            if (driveAction == null) {
+                Pose2d pose = drive.localizer.getPose();
+                driveAction = drive.actionBuilder(pose)
+                        .strafeTo(new Vector2d(pose.position.x, SUBMERSIBLE_Y + 15))
+                        .build();
+
+            }
+
+            return driveAction.run(telemetryPacket);
+        }
     }
 
     private Action retractOuttake () {
@@ -222,10 +252,7 @@ public class DanielAuton extends LinearOpMode {
                         goTo(basketPos),
                         new SequentialAction(
                                 new Intake.ClearWristActionRR(intake),
-                                new ParallelAction(
-                                        new Outtake.MoveSlideActionRR(outtake, Outtake.HIGH_BASKET_POSITION),
-                                        new Outtake.SpinToMidActionRR(outtake)
-                                )
+                                new Outtake.MoveSlideActionRR(outtake, Outtake.HIGH_BASKET_POSITION)
                         )
                 ),
                 new Outtake.DumpActionRR(outtake)
@@ -255,8 +282,8 @@ public class DanielAuton extends LinearOpMode {
         @Override
         public boolean run(@NonNull TelemetryPacket telemetryPacket) {
             if (driveAction == null) {
-                driveAction = drive.actionBuilder(drive.pose)
-                        .turnTo(Math.toRadians(selectedSample.getAngle()))
+                driveAction = drive.actionBuilder(drive.localizer.getPose())
+                        .turnTo(Math.toRadians(selectedSample.getAngle() - 90))
                         .build();
             }
 

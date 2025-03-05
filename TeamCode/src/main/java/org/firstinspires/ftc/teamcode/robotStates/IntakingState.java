@@ -48,9 +48,9 @@ public class IntakingState implements MurphyState {
             kickTask = new Kicker.KickTask(robot.kicker);
         }
 
-        if (gamepad2.right_stick_x > 0.5) {
+        if (gamepad2.b) {
             intake.setFlip(Intake.FLIP_HIGH_POSITION);
-        } else if (gamepad2.right_stick_x < -0.5) {
+        } else if (gamepad2.a) {
             intake.setFlip(Intake.FLIP_LOW_POSITION);
         }
 

@@ -15,6 +15,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.murphy.MurphyStateMachine;
 import org.firstinspires.ftc.teamcode.robotStates.IntakingState;
+import org.firstinspires.ftc.teamcode.robotStates.OuttakingState;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Kicker;
 import org.firstinspires.ftc.teamcode.subsystems.Outtake;
@@ -47,7 +48,7 @@ public class DanielOpMode extends LinearOpMode {
                 RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
                 RevHubOrientationOnRobot.UsbFacingDirection.UP)
         ).get();
-        imu.resetYaw();
+        //imu.resetYaw();
 
         FtcDashboard dashboard = FtcDashboard.getInstance();
         Telemetry dashboardTelemetry = dashboard.getTelemetry();
@@ -152,7 +153,7 @@ public class DanielOpMode extends LinearOpMode {
             r /= 4;
         }
 
-        r += robot.rotationOffset;
+        //r += robot.rotationOffset;
 
         driveBase.driveFieldCentric(x, y, r, imu.getRobotYawPitchRollAngles().getYaw());
     }

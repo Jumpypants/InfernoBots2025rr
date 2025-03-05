@@ -84,7 +84,7 @@ public class VisionAutonTest extends LinearOpMode {
                 waitAction(0.2),
                 findAction(),
                 new ParallelAction(
-                        new Rotate(),
+                        new RotateAction(),
                         new Intake.WristActionRR(intake, Intake.WRIST_DOWN_POSITION),
                         new Intake.FlipActionRR(intake, Intake.FLIP_LOW_POSITION)
                 ),
@@ -156,13 +156,13 @@ public class VisionAutonTest extends LinearOpMode {
         };
     }
 
-    private class Rotate implements Action {
+    private class RotateAction implements Action {
         Action driveAction = null;
 
         @Override
         public boolean run(@NonNull TelemetryPacket telemetryPacket) {
             if (driveAction == null) {
-                driveAction = drive.actionBuilder(drive.pose)
+                driveAction = drive.actionBuilder(drive.localizer.getPose())
                         .turnTo(Math.toRadians(selectedSample.getAngle()))
                         .build();
             }

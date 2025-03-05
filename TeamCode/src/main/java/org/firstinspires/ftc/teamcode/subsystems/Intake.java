@@ -37,7 +37,7 @@ public class Intake {
 
     public static double SLIDE_IN_POSITION = 0;
 
-    public static double SLIDE_MAX_POSITION = 42;
+    public static double SLIDE_MAX_POSITION = 18.5;
     public static double SLIDE_MIN_POSITION = 0;
 
     public static double SLIDE_TICKS_PER_INCH = 0.0454545;
@@ -87,8 +87,6 @@ public class Intake {
     public void setSlideSetPoint(double setPoint) {
         if (setPoint > SLIDE_MAX_POSITION) {
             setPoint = SLIDE_MAX_POSITION;
-        } else if (setPoint < SLIDE_MIN_POSITION) {
-            setPoint = SLIDE_MIN_POSITION;
         }
         pidController.setSetpoint(setPoint);
     }
@@ -97,6 +95,8 @@ public class Intake {
         double slidePosition = getSlidePosition();
         double power = pidController.calculate(slidePosition);
         SLIDE_MOTOR.set(power * powerCoefficient);
+        telemetry.addData("Intake pos", getSlidePosition());
+        telemetry.addData("intake setpoint", pidController.getSetpoint());
     }
 
     public void stepSlide(Telemetry telemetry) {
@@ -142,12 +142,7 @@ public class Intake {
     public double getSlideSetPoint() {return pidController.getSetpoint();}
 
     public void driveSlide(double x, double y, double heading, boolean slowMode) {
-        double cosHeading = Math.cos(Math.toRadians(heading));
-        double sinHeading = Math.sin(Math.toRadians(heading));
-
-        double power = x * sinHeading + y * cosHeading;
-
-        pidController.setSetpoint(getSlidePosition() - y * (slowMode ? 2 : 8));
+        setSlideSetPoint(getSlidePosition() - y * (slowMode ? 2 : 8));
     }
 
     public boolean hasYellowSample() {
@@ -419,7 +414,7 @@ public class Intake {
                 if (distance > 0) intake.setSlideSetPoint(distance);
             }
 
-            if (elapsedTime.seconds() > 1.5) {
+            if (elapsedTime.seconds() > 0.75) {
                 intake.setSpin(Intake.SPIN_STOP);
                 return false;
             }
@@ -461,6 +456,11 @@ public class Intake {
 
             if (intake.hasSampleOfCorrectColor(ALLIANCE) || elapsedTime.seconds() > 2) {
                 intake.setSpin(SPIN_STOP);
+                return false;
+            }
+
+            if (intake.hasSample() && !intake.hasSampleOfCorrectColor(ALLIANCE)){
+                intake.setSpin(SPIN_OUT);
                 return false;
             }
 

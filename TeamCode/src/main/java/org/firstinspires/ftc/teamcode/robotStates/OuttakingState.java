@@ -28,10 +28,8 @@ public class OuttakingState implements MurphyState {
 
         mainTask = new MurphySequentialTask(
                 new Intake.ClearWristTask(intake),
-                new MurphyParallelTask( false,
-                        new Outtake.MoveSlideTask(outtake, targetPosition),
-                        new Outtake.SpinToMidTask(outtake)
-                ),
+                    new Outtake.MoveSlideTask(outtake, targetPosition),
+                    new Outtake.SpinToMidTask(outtake),
                 new Outtake.DumpTask(outtake, gamepad2),
                 new Outtake.SpinToInTask(outtake)
         );

@@ -14,7 +14,7 @@ import org.firstinspires.ftc.teamcode.murphy.MurphyTask;
 
 @Config
 public class Kicker {
-    public static double OUT_POSITION = 0.4;
+    public static double OUT_POSITION = 0.34;
     public static double IN_POSITION = 0.0;
 
     public static double KICK_HALF_TIME = 0.5;
