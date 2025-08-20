@@ -2,19 +2,19 @@ package org.firstinspires.ftc.teamcode.robotStates;
 
 import com.qualcomm.robotcore.hardware.Gamepad;
 
-import org.firstinspires.ftc.teamcode.murphy.MurphyTask;
-import org.firstinspires.ftc.teamcode.murphy.MurphyParallelTask;
-import org.firstinspires.ftc.teamcode.murphy.MurphySequentialTask;
-import org.firstinspires.ftc.teamcode.murphy.MurphyState;
+import com.fremontrobotics.murphy.State;
+import com.fremontrobotics.murphy.Task;
+import com.fremontrobotics.murphy.SequentialTask;
+import com.fremontrobotics.murphy.ParallelTask;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Robot;
 
-public class TransferringState implements MurphyState {
+public class TransferringState implements State {
     private final Robot robot;
 
     private final double targetPosition;
 
-    private final MurphyTask mainTask;
+    private final Task mainTask;
 
     public TransferringState(Robot robot, double targetPosition) {
         this.robot = robot;
@@ -22,8 +22,8 @@ public class TransferringState implements MurphyState {
         Intake intake = robot.intake;
         this.targetPosition = targetPosition;
 
-        mainTask = new MurphySequentialTask(
-                new MurphyParallelTask( false,
+        mainTask = new SequentialTask(
+                new ParallelTask( false,
                         new Intake.WristTask(intake, Intake.WRIST_TRANSFER_POSITION),
                         new Intake.MoveSlideTask(intake, Intake.SLIDE_IN_POSITION),
                         new Intake.FlipTask(intake, Intake.FLIP_LOW_POSITION)
@@ -33,7 +33,7 @@ public class TransferringState implements MurphyState {
     }
 
     @Override
-    public MurphyState step() {
+    public State step() {
         Gamepad gamepad2 = robot.gamepad2;
         if (gamepad2.left_trigger > 0.2) {
             robot.intake.setWrist(Intake.WRIST_MID_POSITION);

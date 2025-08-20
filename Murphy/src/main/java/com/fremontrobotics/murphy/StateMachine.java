@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.murphy;
+package com.fremontrobotics.murphy;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
@@ -6,15 +6,15 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
  * This class is used to manage the states of the robot, and to run them.
  * The opMode should probably have exactly one instance of this class.
  */
-public class MurphyStateMachine {
-    private MurphyState currentState;
+public class StateMachine {
+    private State currentState;
 
     /**
      * @param initialState
      * A state instance to be the initial state of the robot.
      * The next state will be the one returned by the initial state, and so on.
      */
-    public MurphyStateMachine(MurphyState initialState) {
+    public StateMachine(State initialState) {
         currentState = initialState;
     }
 

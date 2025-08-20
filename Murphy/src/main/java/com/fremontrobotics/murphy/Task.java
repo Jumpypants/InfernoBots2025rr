@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.murphy;
+package com.fremontrobotics.murphy;
 
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -11,7 +11,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
  * It is recommended to extend 'MurphyAction' within a class that represents a subsystem of the robot.
  * Multiple actions can be stringed together to perform complicated tasks.
  */
-public abstract class MurphyTask {
+public abstract class Task {
     /**
      * How long it has been since the action was initialized.
      */

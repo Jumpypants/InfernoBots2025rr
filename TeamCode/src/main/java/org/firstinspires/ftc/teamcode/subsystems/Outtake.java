@@ -6,6 +6,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
+import com.fremontrobotics.murphy.Task;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -14,7 +15,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.PIDFController;
-import org.firstinspires.ftc.teamcode.murphy.MurphyTask;
 
 @Config
 public class Outtake {
@@ -127,7 +127,7 @@ public class Outtake {
         return pidfController.getSetpoint();
     }
 
-    public static class MoveSlideTask extends MurphyTask {
+    public static class MoveSlideTask extends Task {
 
         private final Outtake outtake;
         private final double setPoint;
@@ -165,7 +165,7 @@ public class Outtake {
     }
 
 
-    public static class SpinToMidTask extends MurphyTask {
+    public static class SpinToMidTask extends Task {
         private final Outtake outtake;
 
         public SpinToMidTask(Outtake outtake) {
@@ -204,7 +204,7 @@ public class Outtake {
         }
     }
 
-    public static class DumpTask extends MurphyTask {
+    public static class DumpTask extends Task {
         private final Outtake outtake;
         private final Gamepad gamepad2;
 
@@ -253,7 +253,7 @@ public class Outtake {
         }
     }
 
-    public static class SpinToInTask extends MurphyTask {
+    public static class SpinToInTask extends Task {
         private final Outtake outtake;
 
         public SpinToInTask(Outtake outtake) {
@@ -292,7 +292,7 @@ public class Outtake {
         }
     }
 
-    public static class ClawOpenTask extends MurphyTask {
+    public static class ClawOpenTask extends Task {
         private final Outtake outtake;
         private double requiredTime = 0.4;
 
@@ -315,7 +315,7 @@ public class Outtake {
         }
     }
 
-    public static class ClawCloseTask extends MurphyTask {
+    public static class ClawCloseTask extends Task {
         private final Outtake outtake;
         private double requiredTime = 0.5;
 

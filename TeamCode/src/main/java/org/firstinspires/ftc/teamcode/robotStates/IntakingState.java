@@ -1,11 +1,11 @@
 package org.firstinspires.ftc.teamcode.robotStates;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.fremontrobotics.murphy.State;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.IMU;
 
-import org.firstinspires.ftc.teamcode.murphy.MurphyTask;
-import org.firstinspires.ftc.teamcode.murphy.MurphyState;
+import com.fremontrobotics.murphy.Task;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Kicker;
 import org.firstinspires.ftc.teamcode.subsystems.Outtake;
@@ -13,17 +13,17 @@ import org.firstinspires.ftc.teamcode.subsystems.Robot;
 
 
 @Config
-public class IntakingState implements MurphyState {
+public class IntakingState implements State {
     private final Robot robot;
 
-    private MurphyTask kickTask = null;
+    private Task kickTask = null;
 
     public IntakingState(Robot robot) {
         this.robot = robot;
     }
 
     @Override
-    public MurphyState step() {
+    public State step() {
         Intake intake = robot.intake;
         Gamepad gamepad2 = robot.gamepad2;
         IMU imu = robot.imu;

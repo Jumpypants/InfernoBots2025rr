@@ -5,12 +5,12 @@ import androidx.annotation.NonNull;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
+import com.fremontrobotics.murphy.Task;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.murphy.MurphyTask;
 
 @Config
 public class Kicker {
@@ -29,7 +29,7 @@ public class Kicker {
         KICKER_SERVO.setPosition(position);
     }
 
-    public static class KickTask extends MurphyTask {
+    public static class KickTask extends Task {
         private final Kicker kicker;
 
         public KickTask(Kicker kicker) {

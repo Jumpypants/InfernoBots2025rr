@@ -1,0 +1,123 @@
+apply plugin: 'com.android.library'
+apply plugin: 'maven-publish'
+
+android {
+    namespace 'com.fremontrobotics.murphy'
+    compileSdk 34
+
+    defaultConfig {
+        minSdk 24
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+    // Enable publishing for Android Library
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+        }
+    }
+}
+
+dependencies {
+    implementation 'org.firstinspires.ftc:RobotCore:10.2.0'
+
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'com.google.android.material:material:1.12.0'
+}
+
+// Maven publishing configuration
+// Define the version of your library
+def VERSION_NAME = "1.0.0"
+def GROUP_ID = "com.fremontrobotics"
+def ARTIFACT_ID = "murphy"
+
+afterEvaluate {
+    publishing {
+        publications {
+            // Creates a Maven publication called "release"
+            release(MavenPublication) {
+                // Applies the component for the release build variant
+                from components.release
+
+                // Library coordinates
+                groupId GROUP_ID
+                artifactId ARTIFACT_ID
+                version VERSION_NAME
+
+                // POM file information
+                pom {
+                    name = 'Murphy'
+                    description = 'FTC robotics library with reusable components'
+                    url = 'https://github.com/fremontrobotics/murphy' // Replace with your actual repository URL
+
+                    licenses {
+                        license {
+                            name = 'The Apache License, Version 2.0'
+                            url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        }
+                    }
+                    
+                    developers {
+                        developer {
+                            id = 'fremontrobotics'
+                            name = 'Fremont Robotics'
+                            email = 'example@fremontrobotics.com' // Replace with your team email
+                        }
+                    }
+                    
+                    // SCM information
+                    scm {
+                        connection = 'scm:git:github.com/fremontrobotics/murphy.git' // Replace with your repo details
+                        developerConnection = 'scm:git:ssh://github.com/fremontrobotics/murphy.git' // Replace with your repo details
+                        url = 'https://github.com/fremontrobotics/murphy' // Replace with your repo URL
+                    }
+                }
+            }
+        }
+        
+        repositories {
+            // Local repository for testing
+            maven {
+                name = 'localMaven'
+                url = "${buildDir}/local-repo"
+            }
+            
+            // Uncomment and configure for GitHub Packages
+            /*
+            maven {
+                name = 'GitHubPackages'
+                url = uri("https://maven.pkg.github.com/fremontrobotics/murphy") // Replace with your GitHub repository
+                credentials {
+                    username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_USERNAME")
+                    password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
+                }
+            }
+            */
+            
+            // Uncomment for Maven Central
+            /*
+            maven {
+                name = 'mavenCentral'
+                url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+                credentials {
+                    username = project.findProperty("ossrhUsername") ?: System.getenv("OSSRH_USERNAME")
+                    password = project.findProperty("ossrhPassword") ?: System.getenv("OSSRH_PASSWORD")
+                }
+            }
+            */
+        }
+    }
+}

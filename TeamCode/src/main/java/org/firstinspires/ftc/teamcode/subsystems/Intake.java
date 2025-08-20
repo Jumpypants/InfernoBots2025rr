@@ -7,6 +7,7 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.arcrobotics.ftclib.hardware.motors.CRServo;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
+import com.fremontrobotics.murphy.Task;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -16,7 +17,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.PIDController;
-import org.firstinspires.ftc.teamcode.murphy.MurphyTask;
 
 @Config
 public class Intake {
@@ -172,7 +172,7 @@ public class Intake {
         return DISTANCE_SENSOR.getDistance(DistanceUnit.INCH) <= SAMPLE_DISTANCE;
     }
 
-    public static class FlipTask extends MurphyTask {
+    public static class FlipTask extends Task {
         private final double requiredTime;
         private final Intake intake;
         private final double flipPosition;
@@ -219,7 +219,7 @@ public class Intake {
         }
     }
 
-    public static class WristTask extends MurphyTask {
+    public static class WristTask extends Task {
         private final double requiredTime;
         private final Intake intake;
         private final double wristPosition;
@@ -266,7 +266,7 @@ public class Intake {
         }
     }
 
-    public static class MoveSlideTask extends MurphyTask {
+    public static class MoveSlideTask extends Task {
         private final Intake intake;
         private final double setPoint;
 
@@ -302,7 +302,7 @@ public class Intake {
         }
     }
 
-    public static class TransferSpinTask extends MurphyTask {
+    public static class TransferSpinTask extends Task {
         private final Intake intake;
 
         public TransferSpinTask(Intake intake) {
@@ -350,7 +350,7 @@ public class Intake {
         }
     }
 
-    public static class ClearWristTask extends MurphyTask {
+    public static class ClearWristTask extends Task {
         private final Intake intake;
 
         public ClearWristTask(Intake intake) {

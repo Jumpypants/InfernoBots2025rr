@@ -1,23 +1,22 @@
 package org.firstinspires.ftc.teamcode.robotStates;
 
+import com.fremontrobotics.murphy.State;
+import com.fremontrobotics.murphy.Task;
+import com.fremontrobotics.murphy.SequentialTask;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.IMU;
 
-import org.firstinspires.ftc.teamcode.murphy.MurphyTask;
-import org.firstinspires.ftc.teamcode.murphy.MurphyParallelTask;
-import org.firstinspires.ftc.teamcode.murphy.MurphySequentialTask;
-import org.firstinspires.ftc.teamcode.murphy.MurphyState;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Outtake;
 import org.firstinspires.ftc.teamcode.subsystems.Robot;
 
-public class OuttakingState implements MurphyState {
+public class OuttakingState implements State {
     private final Gamepad gamepad2;
     private final Intake intake;
     private final Outtake outtake;
     private final Robot robot;
 
-    private final MurphyTask mainTask;
+    private final Task mainTask;
 
     public OuttakingState(Robot robot, double targetPosition) {
         this.robot = robot;
@@ -26,7 +25,7 @@ public class OuttakingState implements MurphyState {
         this.intake = robot.intake;
         this.outtake = robot.outtake;
 
-        mainTask = new MurphySequentialTask(
+        mainTask = new SequentialTask(
                 new Intake.ClearWristTask(intake),
                     new Outtake.MoveSlideTask(outtake, targetPosition),
                     new Outtake.SpinToMidTask(outtake),
@@ -36,7 +35,7 @@ public class OuttakingState implements MurphyState {
     }
 
     @Override
-    public MurphyState step() {
+    public State step() {
         IMU imu = robot.imu;
 
         intake.driveSlide(gamepad2.left_stick_x, gamepad2.left_stick_y, imu.getRobotYawPitchRollAngles().getYaw(), !gamepad2.left_bumper);

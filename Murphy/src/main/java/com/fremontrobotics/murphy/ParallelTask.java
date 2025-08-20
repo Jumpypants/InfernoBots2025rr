@@ -1,12 +1,12 @@
-package org.firstinspires.ftc.teamcode.murphy;
+package com.fremontrobotics.murphy;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 /**
  * An action that runs multiple actions in parallel.
  */
-public class MurphyParallelTask extends MurphyTask {
-    private final MurphyTask[] actions;
+public class ParallelTask extends Task {
+    private final Task[] actions;
 
     private final boolean stopOnFirstCompletion;
 
@@ -17,7 +17,7 @@ public class MurphyParallelTask extends MurphyTask {
      * @param actions
      * The actions to run.
      */
-    public MurphyParallelTask(boolean stopOnFirstCompletion, MurphyTask... actions) {
+    public ParallelTask(boolean stopOnFirstCompletion, Task... actions) {
         this.actions = actions;
         this.stopOnFirstCompletion = stopOnFirstCompletion;
     }
@@ -29,7 +29,7 @@ public class MurphyParallelTask extends MurphyTask {
     protected boolean run(Telemetry telemetry) {
         boolean runAgain = false;
 
-        for (MurphyTask action : actions) {
+        for (Task action : actions) {
             if (action.step(telemetry)) {
                 runAgain = true;
                 if (stopOnFirstCompletion) {

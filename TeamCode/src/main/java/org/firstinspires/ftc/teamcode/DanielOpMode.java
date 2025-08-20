@@ -6,6 +6,7 @@ import com.acmerobotics.roadrunner.ftc.LazyImu;
 import com.arcrobotics.ftclib.drivebase.MecanumDrive;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.arcrobotics.ftclib.hardware.motors.MotorEx;
+import com.fremontrobotics.murphy.StateMachine;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -13,9 +14,7 @@ import com.qualcomm.robotcore.hardware.IMU;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
-import org.firstinspires.ftc.teamcode.murphy.MurphyStateMachine;
 import org.firstinspires.ftc.teamcode.robotStates.IntakingState;
-import org.firstinspires.ftc.teamcode.robotStates.OuttakingState;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Kicker;
 import org.firstinspires.ftc.teamcode.subsystems.Outtake;
@@ -93,7 +92,7 @@ public class DanielOpMode extends LinearOpMode {
             intake.setWrist(Intake.WRIST_TRANSFER_POSITION);
         }
 
-        MurphyStateMachine stateMachine = new MurphyStateMachine(new IntakingState(robot));
+        StateMachine stateMachine = new StateMachine(new IntakingState(robot));
 
         while (opModeIsActive()) {
             if (gamepad2.dpad_up) {

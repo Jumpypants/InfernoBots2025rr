@@ -1,17 +1,16 @@
 package org.firstinspires.ftc.teamcode.robotStates;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.murphy.MurphyParallelTask;
-import org.firstinspires.ftc.teamcode.murphy.MurphySequentialTask;
-import org.firstinspires.ftc.teamcode.murphy.MurphyState;
-import org.firstinspires.ftc.teamcode.murphy.MurphyTask;
+import com.fremontrobotics.murphy.SequentialTask;
+import com.fremontrobotics.murphy.State;
+import com.fremontrobotics.murphy.Task;
+
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Outtake;
 import org.firstinspires.ftc.teamcode.subsystems.Robot;
 
-public class SpecimenState implements MurphyState {
+public class SpecimenState implements State {
     private final Robot robot;
-    private MurphyTask mainTask = null;
+    private Task mainTask = null;
 
     public SpecimenState (Robot robot) {
         this.robot = robot;
@@ -19,7 +18,7 @@ public class SpecimenState implements MurphyState {
     }
 
     @Override
-    public MurphyState step() {
+    public State step() {
         if (mainTask != null) {
             if (!mainTask.step(robot.telemetry)) mainTask = null;
         } else {
@@ -41,21 +40,21 @@ public class SpecimenState implements MurphyState {
         return "Specimen";
     }
 
-    private MurphyTask setUp () {
-        return new MurphySequentialTask(
+    private Task setUp () {
+        return new SequentialTask(
                 new Outtake.ClawOpenTask(robot.outtake),
                 new Outtake.MoveSlideTask(robot.outtake, Outtake.DOWN_POSITION)
         );
     }
 
-    private MurphyTask grab () {
-        return new MurphySequentialTask(
+    private Task grab () {
+        return new SequentialTask(
                 new Outtake.ClawCloseTask(robot.outtake),
                 new Outtake.MoveSlideTask(robot.outtake, Outtake.SPECIMEN_UP_POSITION)
         );
     }
 
-    private MurphyTask place () {
+    private Task place () {
         return new Outtake.MoveSlideTask(robot.outtake, Outtake.SPECIMEN_DOWN_POSITION);
     }
 }

@@ -1,12 +1,12 @@
-package org.firstinspires.ftc.teamcode.murphy;
+package com.fremontrobotics.murphy;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 /**
  * An action that runs multiple actions in a certain sequence.
  */
-public class MurphySequentialTask extends MurphyTask {
-    private final MurphyTask[] actions;
+public class SequentialTask extends Task {
+    private final Task[] actions;
 
     private int currentActionIndex = 0;
 
@@ -14,7 +14,7 @@ public class MurphySequentialTask extends MurphyTask {
      * @param actions
      * The actions to run in their respective order.
      */
-    public MurphySequentialTask(MurphyTask... actions) {
+    public SequentialTask(Task... actions) {
         this.actions = actions;
     }
 
